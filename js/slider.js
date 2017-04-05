@@ -6,6 +6,8 @@ function createSlider(parentElement, name)
   var buttonNode = document.createElement("Button");
   buttonNode.style.width="30px";
   buttonNode.style.height="25px";
+  buttonNode.slider = sliderNode;
+  sliderNode.name = name;
   sliderNode.button = buttonNode;
   sliderNode.state = true;
   sliderNode.setState = function(slider, value)
@@ -27,6 +29,13 @@ function createSlider(parentElement, name)
   sliderNode.appendChild(buttonNode);
   parentElement.appendChild(sliderNode);
   sliderNode.onmousedown = sliderPanelClick;
+  buttonNode.onmousedown = sliderMouseDown;
+  buttonNode.onmousemove = sliderMouseMove;
+  buttonNode.onmouseup = sliderMouseUp;
+  buttonNode.onmouseleave = sliderMouseLeave;
+  buttonNode.addEventListener('touchstart', sliderTouchstart);
+  buttonNode.addEventListener('touchmove', sliderTouchmove);
+  buttonNode.addEventListener('touchend', sliderTouchend);
 }
 
 
@@ -67,11 +76,11 @@ function sliderTouchend(ev)
     targ.isDown = true;
     if (targ.offsetLeft > (targ.parentNode.clientWidth - targ.offsetWidth) /2)
     {
-      targ.setState(targ.slider, false)
+      targ.parentNode.setState(targ.parentNode, false)
     }
     else
     {
-      targ.setState(targ.slider, true)
+      targ.parentNode.setState(targ.parentNode, true)
     }
   }
 }
@@ -87,7 +96,9 @@ function sliderTouchmove(ev){
   ev.preventDefault();
   var touch = ev.changedTouches.item(0);
 
-  targ.style.left = (touch.pageX - targ.parentNode.offsetLeft - targ.startOffset).toString()  + "px";
+  var offset = (touch.pageX - targ.startOffset);
+  offset = sliderBoundOffset(targ.parentNode, offset);
+  targ.style.left = (offset).toString()  + "px";
 } 
 function sliderMouseLeave(ev)
 {
@@ -121,13 +132,21 @@ function sliderMouseUp(ev){
     }
     if (targ.offsetLeft > (targ.parentNode.clientWidth - targ.offsetWidth) /2)
     {
-      targ.setState(targ.slider, false)
+      targ.parentNode.setState(targ.parentNode, false)
     }
     else
     {
-      targ.setState(targ.slider, true)
+      targ.parentNode.setState(targ.parentNode, true)
     }
   }}
+
+function sliderBoundOffset(slider, offset)
+{
+  var maxOffset =  slider.clientWidth - slider.button.offsetWidth;
+  offset = offset < 0 ? 0 : (offset > maxOffset ? maxOffset : offset) ;
+  return offset;
+}
+
 function sliderMouseMove(ev){
   ev = ev || window.event;
   var targ;
@@ -136,7 +155,9 @@ function sliderMouseMove(ev){
   {
     return;
   }
-  targ.style.left = (ev.clientX - targ.parentNode.offsetLeft - targ.startOffset).toString()  + "px";
+  var offset = (ev.clientX - targ.parentNode.offsetLeft - targ.startOffset);
+  offset = sliderBoundOffset(targ.parentNode, offset);
+  targ.style.left = (offset).toString()  + "px";
   }
  function sliderPanelClick(ev)
  {
