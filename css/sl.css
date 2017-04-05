@@ -1,0 +1,17 @@
+span.Slider {
+  border-width : thin;
+  border-style : solid;
+  border-color: black;
+  width : 300px;
+  height: 25px;
+  position: absolute;
+
+span.Slider button {
+  position: absolute;
+
+
+body
+{
+  background : #999999;
+  color : black;
+}
