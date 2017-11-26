@@ -5,6 +5,7 @@ span.Slider {
   width : 300px;
   height: 25px;
   display:inline-block;
+  vertical-align: middle;
   position: relative;}
 
 span.Slider button {
@@ -12,13 +13,12 @@ span.Slider button {
   position: relative;}
 
 div.LabeledSlider {
-  margin: 1em}
+  margin: .5em;}
 
 span.SliderLabel {
   display:inline-block;
-  border: 1px;
-  border-color: black;
-  border-style: solid;
+  position: relative;
+  vertical-align: middle;
   width: 175px}
 
 body
@@ -26,3 +26,11 @@ body
   background : #999999;
   color : black;
 }
+
+div.navBar {padding: 0px 0px 0px 30px}
+span.tab {background :grey; border-width: 1px 1px 0px 1px; border-style: solid; padding: 3px 3px 2px 3px; margin: 0px 6px 0px 0px; border-radius:0px 20px 0px 0px}
+span.tab.active {background:white; padding:5px 3px 3px 3px}
+span.hiddenTab {display: none;}
+
+div.tabBody {background:white; border-width: 1px; border-style: solid; padding: 5px; margin:1px; border-radius: 15px}
+div.tabBody.narrow {width:500px}

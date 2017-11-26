@@ -22,7 +22,6 @@ function createSlider(parentElement, name)
         p = slider.clientWidth - slider.button.offsetWidth;
         slider.state = false;
       }
-      slider.button.style.position="absolute";
       slider.button.style.left = '' + p + 'px';
     }
   sliderNode.appendChild(buttonNode);
