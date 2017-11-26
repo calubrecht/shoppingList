@@ -5,7 +5,6 @@ function createSlider(parentElement, name)
   sliderNode.className = "Slider";
   var buttonNode = document.createElement("Button");
   buttonNode.style.width="30px";
-  buttonNode.style.height="25px";
   buttonNode.slider = sliderNode;
   sliderNode.name = name;
   sliderNode.button = buttonNode;
@@ -176,3 +175,16 @@ function sliderMouseMove(ev){
       targ.setState(targ, !targ.state);
    }
  }
+
+
+function createLabeledSlider(parentElement, label, name)
+{
+  var sliderNode = document.createElement("div");
+  sliderNode.className = "LabeledSlider";
+  var textNode = document.createElement("span");
+  textNode.innerText = label;
+  textNode.className = "SliderLabel"
+  sliderNode.appendChild(textNode);
+  createSlider(sliderNode, name);
+  parentElement.appendChild(sliderNode);
+}

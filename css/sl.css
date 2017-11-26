@@ -4,11 +4,22 @@ span.Slider {
   border-color: black;
   width : 300px;
   height: 25px;
-  position: absolute;
+  display:inline-block;
+  position: relative;}
 
 span.Slider button {
-  position: absolute;
+  height: 25px;
+  position: relative;}
 
+div.LabeledSlider {
+  margin: 1em}
+
+span.SliderLabel {
+  display:inline-block;
+  border: 1px;
+  border-color: black;
+  border-style: solid;
+  width: 175px}
 
 body
 {
