@@ -7,9 +7,3 @@ function createShoppingList(parentElement, userName)
   createLabeledSlider(parentElement, "Nonlinear Pasta", "nonlinearPasta");
   parentElement.appendChild(shoppingNode);
 }
-
-function loadShoppingList()
-{
-  var shoppingListTab = document.getElementById("listTab");
-  createShoppingList(shoppingListTab, "Bob");
-}
