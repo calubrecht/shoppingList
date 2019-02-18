@@ -44,24 +44,34 @@ function send403()
   die();
 }
 
-function getList($id)
+function getFileByID($id, $thumb=false)
 {
-  //global $db; 
-  //$results =
-  //  $db->queryOneRow("SELECT fileLoc,thumbLoc,originalName,isPublic,isVisible,owner FROM images WHERE id=?", $id);
-  //if (!$results)
- // {
- //   send404();
-  // }
-  $ret = array();
-  $items = array();
-  $items[0] = array("ItemName"=>"Bacon", "Id"=>"Bacon", "Count"=>1);
-  $items[1] = array("ItemName"=>"Eggs", "Id"=>"Eggs", "Count"=>19);
-  $items[2] = array("ItemName"=>"Nonlinear Pasta", "Id"=>"NonlinearPasta", "Count"=>2);
-  $items[3] = array("ItemName"=>"White Thins", "Id"=>"WheatThins", "Count"=>1);
-  $ret["items"] = $items;
-  $ret["success"] = true;
-  echo json_encode($ret);
+  global $db; 
+  $results =
+    $db->queryOneRow("SELECT fileLoc,thumbLoc,originalName,isPublic,isVisible,owner FROM images WHERE id=?", $id);
+  if (!$results)
+  {
+    send404();
+  }
+  $fileName = $thumb ? $results["thumbLoc"] : $results["fileLoc"];
+  $isVisible = $results["isVisible"] ==1;
+  $isPublic = $results["isPublic"] ==1;
+  
+  if (null == getCurrentUserId())
+  {
+    if (!$isVisible)
+    {
+      send404();
+    }
+  }
+  if ($results["owner"] != getCurrentUserId())
+  {
+    if (!$isVisible && !$isPublic)
+    {
+      send404();
+    }
+  }
+  getFileByName($fileName, $results["originalName"]);
 }
 
 function getFileByName($fileName, $originalName)
