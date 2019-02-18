@@ -27,11 +27,11 @@ function createSlider(parentElement, name)
     }
   sliderNode.appendChild(buttonNode);
   parentElement.appendChild(sliderNode);
-  sliderNode.onmousedown = sliderPanelClick;
-  buttonNode.onmousedown = sliderMouseDown;
-  buttonNode.onmousemove = sliderMouseMove;
-  buttonNode.onmouseup = sliderMouseUp;
-  buttonNode.onmouseleave = sliderMouseLeave;
+  sliderNode.onpointerdown = sliderPanelClick;
+  buttonNode.onpointerdown = sliderMouseDown;
+  buttonNode.onpointermove = sliderMouseMove;
+  buttonNode.onpointerup = sliderMouseUp;
+  buttonNode.onpointerleave = sliderMouseLeave;
   buttonNode.addEventListener('touchstart', sliderTouchstart);
   buttonNode.addEventListener('touchmove', sliderTouchmove);
   buttonNode.addEventListener('touchend', sliderTouchend);
@@ -44,12 +44,16 @@ function sliderMouseDown(ev){
   {
     return;
   }
+  if (ev.pointerType == "touch")
+  {
+    return;
+  }
   var targ;
   targ = ev.target;
   targ.isDown = true;
-  if (typeof targ.setCapture == "function")
+  if (typeof targ.setPointerCapture == "function")
   {
-    targ.setCapture(true);
+    targ.setPointerCapture(ev.pointerId);
   }
   targ.startOffset = ev.offsetX;
 }
@@ -102,9 +106,13 @@ function sliderTouchmove(ev){
 function sliderMouseLeave(ev)
 {
   ev = ev || window.event;
+  if (ev.pointerType == "touch")
+  {
+    return;
+  }
   var targ;
   targ = ev.srcElement;
-  if (typeof targ.setCapture != "function")
+  if (typeof targ.setPointerCapture != "function")
   {
     sliderMouseUp(ev);
   }
@@ -122,12 +130,16 @@ function sliderMouseUp(ev){
   ev = ev || window.event;
   var targ;
   targ = ev.target;
+  if (ev.pointerType == "touch")
+  {
+    return;
+  }
   if (targ.isDown)
   {
     targ.isDown = false;
-    if (typeof targ.releaseCapture == "function")
+    if (typeof targ.releasePointerCapture == "function")
     {
-      targ.releaseCapture();
+      targ.releasePointerCapture(ev.pointerId);
     }
     if (targ.offsetLeft > (targ.parentNode.clientWidth - targ.offsetWidth) /2)
     {
@@ -150,6 +162,10 @@ function sliderMouseMove(ev){
   ev = ev || window.event;
   var targ;
   targ = ev.srcElement;
+  if (ev.pointerType == "touch")
+  {
+    return;
+  }
   if (!targ.isDown)
   {
     return;

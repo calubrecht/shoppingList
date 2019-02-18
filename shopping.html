@@ -2,15 +2,31 @@
 <HTML>
 <HEAD>
 <TITLE>Shopping List</TITLE>
-<link rel="stylesheet" type="text/css" href="/css/sl.css" >
+<link rel="stylesheet" type="text/css" href="/css/kitchen.css" >
 <META NAME="resource-type" CONTENT="document">
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
 <META http-equiv="Content-language" content="en-us">
 <meta name=viewport content="width=device-width, initial-scale=1">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script type='text/javascript' src='/js/slider.js'></script>
-<script type='text/javascript' src='/js/shoppingList.js'></script>
+<script type='text/javascript' src='/js/kitchen.js'></script>
 </HEAD>
-<BODY onload="createShoppingList( document.getElementsByTagName('BODY')[0],'bob')">
-
+<BODY onload="pickTab('login');createPlannedItem( $('body')[0],'sushi', 1);">
+  <h1><img src="/sl_icons/sd.png">Your Shopping List</h1>
+  <div id="Body">
+     <div class="navBar">
+       <span class="tab active" id="login" onclick="pickTab('login')">Login</span>
+       <span class="tab" id="password" onclick="pickTab('password')">Forgot Password</span>
+       <span class="tab" id="register" onclick="pickTab('register')">Register</span>
+       <span class="tab" id="buildList" onclick="pickTab('buildList')">Build List</span>
+       <span class="tab" id="shop" onclick="pickTab('shop')">Shop</span>
+       <span class="tab" id="logout" onclick="logout">Logout</span>
+     </div>
+     <div id="loginTab" class="tabBody narrow">Login</div>
+     <div id="passwordTab" class="tabBody narrow">Password</div>
+     <div id="registerTab" class="tabBody narrow">Register</div>
+     <div id="buildListTab" class="tabBody">buildList</div>
+     <div id="shopTab" class="tabBody">shop</div>
+  </div>
 </BODY>
 </html>

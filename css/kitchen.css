@@ -1,0 +1,39 @@
+span.Slider {
+  border-width : thin;
+  border-style : solid;
+  border-color: black;
+  width : 100px;
+  height: 25px;
+  position: absolute;
+  margin: 5px 5px 5px 5px;
+}
+
+span.Slider button {
+  position: absolute;
+}
+
+body
+{
+  background : #999999;
+  color : black;
+}
+
+.Item
+{
+  height: 25px;
+  line-height: 25px;
+}
+
+.Item span
+{
+  margin: 8px 5px 5px 5px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+div#body {position:absolute; top:50%; left:50%; margin-left :-250px; margin-top:-50px} 
+div.navBar {padding: 0px 0px 0px 30px}
+span.tab {background :grey; border-width: 1px 1px 0px 1px; border-style: solid; padding: 3px 3px 2px 3px; margin: 0px 6px 0px 0px; border-radius:0px 20px 0px 0px}
+span.tab.active {background:white; padding:5px 3px 3px 3px}
+div.tabBody {background:white; border-width: 1px; border-style: solid; padding: 5px; margin:1px; border-radius: 15px}
+div.tabBody.narrow {width:500px}
