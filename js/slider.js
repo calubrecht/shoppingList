@@ -4,6 +4,9 @@ var sliderContainers = {};
 
 var buttonWidth = 30;
 
+var activeSlider = null;
+var activeSliderOrigin = 0;
+
 function getSliderState(slider)
 {
   var key = slider.attr('id');
@@ -82,103 +85,30 @@ function createSlider(parentElement, name, enabled)
     }
   parentElement.appendChild(sliderNode.get(0));
   sliderNode.mousedown(sliderPanelClick);
-  buttonNode.onpointerdown = sliderMouseDown;
-  buttonNode.onpointermove = sliderMouseMove;
-  buttonNode.onpointerup = sliderMouseUp;
-  buttonNode.onpointerleave = sliderMouseLeave;
- // buttonNode.addEventListener('touchstart', sliderTouchstart);
- // buttonNode.addEventListener('touchmove', sliderTouchmove);
- // buttonNode.addEventListener('touchend', sliderTouchend);
+  buttonNode.mousedown(sliderMouseDown);
+  buttonNode.on("touchstart", sliderMouseDown);
   setSliderState(sliderNode, enabled);
   return sliderNode;
 }
    
-function getSliderPos(ev)
+function getSliderPos(ev, targ)
 {
-   var targ = ev.currentTarget;
-   var offset = $("#" + targ.id).offset();
-   console.log("clientX = " + ev.clientX + " offset = " + offset.left);
-   return ev.clientX - offset.left;
+   var evPos = ev.type.startsWith("touch") ? ev.changedTouches.item(0).pageX : ev.clientX;
+   var offset = targ.offset();
+   return evPos - offset.left;
 }
 
 function sliderMouseDown(ev){
   ev = ev || window.event;
-  if (ev.button != 0)
-  {
-    return;
-  }
-  if (ev.pointerType == "touch")
-  {
-    return;
-  }
-  var targ;
-  targ = ev.target;
-  targ.isDown = true;
-  if (typeof targ.setPointerCapture == "function")
-  {
-    targ.setPointerCapture(ev.pointerId);
-  }
-  targ.startOffset = getSliderPos(ev);
-}
-function sliderTouchstart(ev)
-{
-  ev = ev || window.event;
-  var targ;
-  targ = ev.target;
-  ev.preventDefault();
-  var touch = ev.changedTouches.item(0);
-  targ.isDown = true;
-  targ.startOffset = getSliderPos(ev);
-}
-function sliderTouchend(ev)
-{
-  ev = ev || window.event;
-  var targ;
-  targ = ev.target;
-  if (targ.isDown)
-  {
-    ev.preventDefault();
-    targ.isDown = false;
-    targ.isDown = true;
-    if (targ.offsetLeft > (targ.parentNode.clientWidth - targ.offsetWidth) /2)
-    {
-      targ.parentNode.setState(targ.parentNode, false)
-    }
-    else
-    {
-      targ.parentNode.setState(targ.parentNode, true)
-    }
-  }
-}
-
-function sliderTouchmove(ev){
-  ev = ev || window.event;
-  var targ;
-  targ = ev.srcElement;
-  if (!targ.isDown)
-  {
-    return;
-  }
-  ev.preventDefault();
-  var touch = ev.changedTouches.item(0);
-
-  var offset = (touch.pageX - targ.startOffset);
-  offset = sliderBoundOffset(targ.parentNode, offset);
-  targ.style.left = (offset).toString()  + "px";
-} 
-function sliderMouseLeave(ev)
-{
-  ev = ev || window.event;
-  if (ev.pointerType == "touch")
-  {
-    return;
-  }
-  var targ;
-  targ = ev.srcElement;
-  if (typeof targ.setPointerCapture != "function")
-  {
-    sliderMouseUp(ev);
-  }
+  var targ = $(this);
+  activeSlider = targ;
+  activeSliderOrigin = getSliderPos(ev, targ);
+  $(body).on("mousemove.slider", sliderMouseMove);
+  $(body).on("mouseup.slider", sliderMouseUp);
+  $(body).on("touchmove.slider", sliderMouseMove);
+  $(body).on("touchend.slider", sliderMouseUp);
+  $(body).on("touchcancel.slider", sliderMouseUp);
+  return false;
 }
 
 function sliderSetState(slider, state)
@@ -191,53 +121,53 @@ function sliderSetState(slider, state)
 
 function sliderMouseUp(ev){
   ev = ev || window.event;
-  var targ;
-  targ = ev.target;
-  if (ev.pointerType == "touch")
+  var targ = activeSlider
+  if (!targ)
   {
     return;
   }
-  if (targ.isDown)
+  var slider = targ.parent();
+  activeSlider = null;
+  activeSliderOrigin = 0;
+  $(body).off("mousemove.slider");
+  $(body).off("mouseup.slider");
+  $(body).off("touchmove.slider");
+  $(body).off("touchup.slider");
+  $(body).off("touchcancel.slider");
+  var offset = targ.offset().left - slider.offset().left;
+  if (offset > (slider.innerWidth() - buttonWidth) /2)
   {
-    targ.isDown = false;
-    if (typeof targ.releasePointerCapture == "function")
-    {
-      targ.releasePointerCapture(ev.pointerId);
-    }
-    if (targ.offsetLeft > (targ.parentNode.clientWidth - targ.offsetWidth) /2)
-    {
-      targ.parentNode.setState(targ.parentNode, false)
-    }
-    else
-    {
-      targ.parentNode.setState(targ.parentNode, true)
-    }
-  }}
+    setSliderState(slider, false);
+  }
+  else
+  {
+    setSliderState(slider, true);
+  }
+  return false;
+}
 
-function sliderBoundOffset(slider, offset)
+function sliderBoundOffset(slider, button, offset)
 {
-  var maxOffset =  slider.clientWidth - slider.button.offsetWidth;
+  var maxOffset =slider.innerWidth() - buttonWidth;
   offset = offset < 0 ? 0 : (offset > maxOffset ? maxOffset : offset) ;
   return offset;
 }
 
 function sliderMouseMove(ev){
   ev = ev || window.event;
-  var targ;
-  targ = ev.srcElement;
-  if (ev.pointerType == "touch")
+  var targ = activeSlider;
+  if (!targ)
   {
     return;
   }
-  if (!targ.isDown)
-  {
-    return;
-  }
-  var offset = getSliderPos(ev) - targ.startOffset;
-  offset = sliderBoundOffset(targ.parentNode, offset);
-  console.log("setPosition to " + offset+ " from " + targ.startOffset);
-  targ.style.left = (offset).toString()  + "px";
-  }
+  var slider = targ.parent();
+  var offset = getSliderPos(ev, slider) - activeSliderOrigin;
+  offset = sliderBoundOffset(slider, targ, offset);
+  var p = slider.offset().left + offset + 1;
+  var y = targ.offset().top;
+  targ.offset({top:y, left:p});
+  return false;
+}
 
 
 
@@ -245,7 +175,7 @@ function sliderMouseMove(ev){
  {
    ev = ev || window.event;
    var targ = $(this);
-   var offset = getSliderPos(ev);
+   var offset = getSliderPos(ev, targ);
    if (offset >  2*targ.clientWidth /3)
    {
       setSliderState(targ, false);
