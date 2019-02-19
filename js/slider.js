@@ -1,15 +1,61 @@
 
-function createSlider(parentElement, name)
+var sliderStates = {};
+var sliderContainers = {};
+
+var buttonWidth = 30;
+
+function getSliderState(slider)
 {
-  var sliderNode = document.createElement("span");
-  sliderNode.className = "Slider";
-  var buttonNode = document.createElement("Button");
-  buttonNode.style.width="30px";
-  buttonNode.style.height="25px";
+  var key = slider.attr('id');
+  return sliderStates[key];
+}
+
+function setSliderContainer(key, container)
+{
+  sliderContainers[key] = container;
+}
+
+function setSliderState(slider, value)
+{
+  var key = slider.attr('id');
+  sliderStates[key]= value;
+  var container = slider.parents(".Item");
+  var button = slider.children("button");
+  var p;
+  if (value)
+  {
+    p = slider.offset().left;
+    if (container)
+    {
+      container.removeClass("disabled");
+    }
+    var y = button.offset().top;
+    p = slider.offset().left + 1;
+    button.offset({top:y, left:p});
+  }
+  else
+  {
+    p = slider.offset().left +1 + slider.innerWidth() - buttonWidth;
+    if (container)
+    {
+      container.addClass("disabled");
+    }
+    var y = button.offset().top;
+    button.offset({top:y, left:p});
+  }
+}
+function createSlider(parentElement, name, enabled)
+{
+  var sliderNode = $("<span/>").addClass("Slider");
+  var buttonNode = $("<button/>").width(buttonWidth).height(25).attr('id',name + "SliderKnob");
   buttonNode.slider = sliderNode;
+  buttonNode.appendTo(sliderNode);
   sliderNode.name = name;
   sliderNode.button = buttonNode;
   sliderNode.state = true;
+  sliderNode.container = null;
+  sliderNode.attr('id',  name + "Slider");
+  jQuery.data(sliderNode, "container", null);
   sliderNode.setState = function(slider, value)
     {
       var p;
@@ -17,27 +63,43 @@ function createSlider(parentElement, name)
       {
         p = 0;
         slider.state = true;
+        if (sliderNode.container)
+        {
+          sliderNode.container.classList.remove("disabled");
+        }
       }
       else
       {
         p = slider.clientWidth - slider.button.offsetWidth;
         slider.state = false;
+        if (sliderNode.container)
+        {
+          sliderNode.container.classList.add("disabled");
+        }
       }
-      slider.button.style.position="absolute";
-      slider.button.style.left = '' + p + 'px';
+      var y = slider.button.offset().top;
+      slider.button.offset(p, y);
     }
-  sliderNode.appendChild(buttonNode);
-  parentElement.appendChild(sliderNode);
-  sliderNode.onpointerdown = sliderPanelClick;
+  parentElement.appendChild(sliderNode.get(0));
+  sliderNode.mousedown(sliderPanelClick);
   buttonNode.onpointerdown = sliderMouseDown;
   buttonNode.onpointermove = sliderMouseMove;
   buttonNode.onpointerup = sliderMouseUp;
   buttonNode.onpointerleave = sliderMouseLeave;
-  buttonNode.addEventListener('touchstart', sliderTouchstart);
-  buttonNode.addEventListener('touchmove', sliderTouchmove);
-  buttonNode.addEventListener('touchend', sliderTouchend);
+ // buttonNode.addEventListener('touchstart', sliderTouchstart);
+ // buttonNode.addEventListener('touchmove', sliderTouchmove);
+ // buttonNode.addEventListener('touchend', sliderTouchend);
+  setSliderState(sliderNode, enabled);
+  return sliderNode;
 }
-
+   
+function getSliderPos(ev)
+{
+   var targ = ev.currentTarget;
+   var offset = $("#" + targ.id).offset();
+   console.log("clientX = " + ev.clientX + " offset = " + offset.left);
+   return ev.clientX - offset.left;
+}
 
 function sliderMouseDown(ev){
   ev = ev || window.event;
@@ -56,7 +118,7 @@ function sliderMouseDown(ev){
   {
     targ.setPointerCapture(ev.pointerId);
   }
-  targ.startOffset = ev.offsetX;
+  targ.startOffset = getSliderPos(ev);
 }
 function sliderTouchstart(ev)
 {
@@ -66,7 +128,7 @@ function sliderTouchstart(ev)
   ev.preventDefault();
   var touch = ev.changedTouches.item(0);
   targ.isDown = true;
-  targ.startOffset = touch.pageX - targ.offsetLeft;
+  targ.startOffset = getSliderPos(ev);
 }
 function sliderTouchend(ev)
 {
@@ -171,24 +233,29 @@ function sliderMouseMove(ev){
   {
     return;
   }
-  var offset = (ev.clientX - targ.parentNode.offsetLeft - targ.startOffset);
+  var offset = getSliderPos(ev) - targ.startOffset;
   offset = sliderBoundOffset(targ.parentNode, offset);
+  console.log("setPosition to " + offset+ " from " + targ.startOffset);
   targ.style.left = (offset).toString()  + "px";
   }
+
+
+
  function sliderPanelClick(ev)
  {
    ev = ev || window.event;
-   var targ = ev.currentTarget;
-   if (ev.clientX - targ.offsetLeft >  2*targ.clientWidth /3)
+   var targ = $(this);
+   var offset = getSliderPos(ev);
+   if (offset >  2*targ.clientWidth /3)
    {
-      targ.setState(targ, false);
+      setSliderState(targ, false);
    }
-   else if (ev.clientX - targ.offsetLeft <  targ.clientWidth /3)
+   else if (offset <  targ.clientWidth /3)
    {
-      targ.setState(targ, true);
+      setSliderState(targ, true);
    }
    else
    {
-      targ.setState(targ, !targ.state);
+      setSliderState(targ, !getSliderState(targ));
    }
  }

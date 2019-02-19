@@ -4,12 +4,12 @@ span.Slider {
   border-color: black;
   width : 100px;
   height: 25px;
-  position: absolute;
+  position: relative;
   margin: 5px 5px 5px 5px;
 }
 
 span.Slider button {
-  position: absolute;
+  position: relative;
 }
 
 body
@@ -31,9 +31,22 @@ body
   vertical-align: middle;
 }
 
+div.Item.disabled
+{
+  color:grey;
+}
+
 div#body {position:absolute; top:50%; left:50%; margin-left :-250px; margin-top:-50px} 
 div.navBar {padding: 0px 0px 0px 30px}
 span.tab {background :grey; border-width: 1px 1px 0px 1px; border-style: solid; padding: 3px 3px 2px 3px; margin: 0px 6px 0px 0px; border-radius:0px 20px 0px 0px}
 span.tab.active {background:white; padding:5px 3px 3px 3px}
 div.tabBody {background:white; border-width: 1px; border-style: solid; padding: 5px; margin:1px; border-radius: 15px}
 div.tabBody.narrow {width:500px}
+
+
+.firstColumn {width:30%; float: left; text-align:right; clear:left}
+.secondColumn {width:65%; float: left; margin: 0px 0px 8px 10px;  }
+.secondColumnCheck {float: left; margin: 0px 0px 8px 10px; text-align:left; }
+
+div.error {color:rgb(200,0,0); font-weight:bold; margin:4px; clear:both}
+span.forgotLink {color:rgb(200,0,0); text-decoration:underline}

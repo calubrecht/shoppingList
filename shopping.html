@@ -11,21 +11,32 @@
 <script type='text/javascript' src='/js/slider.js'></script>
 <script type='text/javascript' src='/js/kitchen.js'></script>
 </HEAD>
-<BODY onload="pickTab('login');createPlannedItem( $('body')[0],'sushi', 1);">
+<BODY onload="init();">
   <h1><img src="/sl_icons/sd.png">Your Shopping List</h1>
-  <div id="Body">
+  <div id="body">
      <div class="navBar">
        <span class="tab active" id="login" onclick="pickTab('login')">Login</span>
        <span class="tab" id="password" onclick="pickTab('password')">Forgot Password</span>
        <span class="tab" id="register" onclick="pickTab('register')">Register</span>
        <span class="tab" id="buildList" onclick="pickTab('buildList')">Build List</span>
        <span class="tab" id="shop" onclick="pickTab('shop')">Shop</span>
-       <span class="tab" id="logout" onclick="logout">Logout</span>
+       <span class="tab" id="logout" onclick="logout()">Logout</span>
      </div>
-     <div id="loginTab" class="tabBody narrow">Login</div>
+     <div id="loginTab" class="tabBody narrow">
+        <div>Login</div>
+        <div class="error" id="loginError"></div>
+        <div><div class="login firstColumn">Username: </div><input class="secondColumn loginForm" type="text" name="username"></div>
+        <div><div class="password firstColumn">Password:</div> <input class="secondColumn loginForm" type="password" name="password"></div>
+        <div><input type="submit" value="Login" onclick="login()" id="loginSubmit"></div>
+        <div><span onclick="forgotPassword()" class="forgotLink">Forgot Password?</span></div>
+     </div>
      <div id="passwordTab" class="tabBody narrow">Password</div>
      <div id="registerTab" class="tabBody narrow">Register</div>
-     <div id="buildListTab" class="tabBody">buildList</div>
+     <div id="buildListTab" class="tabBody">
+        <div class="error" id="buildListError"></div>
+        <div class="msg" id="buildListMsg"></div>
+        <div id="buildListBody"></div>
+      </div>
      <div id="shopTab" class="tabBody">shop</div>
   </div>
 </BODY>
