@@ -3,6 +3,8 @@ ini_set("session.cookie_lifetime", 60*60*24*30); // 30 days
 ini_set("session.gc_maxlifetime", 60*60*24*30); // 30 days
 @session_start();
 
+require_once('config.php');
+require_once('db.php');
 require_once('login.php');
 require_once('shoppingList.php');
 
@@ -19,7 +21,13 @@ function setResult(&$res, $key, $value)
   $res[$key] = $value;
 }
 
-if (!isset($request['action']))
+$db->dbInit();
+if ($db->error)
+{
+  setResult($result, "isLoggedIn", isLoggedIn());
+  setResult($result, "error", "DB Error:". $db->error);
+}
+else if (!isset($request['action']))
 {
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "error", "Action not provided");

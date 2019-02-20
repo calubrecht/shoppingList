@@ -19,27 +19,35 @@ function isLoggedIn()
   return true;
 }
 
+function getLoginInfo($user)
+{
+  global $db;
+  return $db->queryOneRow("SELECT pwHash, idusers, login FROM users WHERE login=?", "$user");
+}
+
 function login($req)
 {
   $user = $req["userName"];
   $password = $req["password"];
-  if ($user == 'abc')
+  global $db;
+  $loginInfo = getLoginInfo($user);
+  if ($loginInfo)
   {
-    $user = "abc";
+    $dbPW = $loginInfo["pwHash"];
+    if (password_verify($password, $dbPW))
+    {
+      $_SESSION["user"] = $loginInfo["login"];
+      $_SESSION["loginTS"] = time();
+    }
+    else
+    {
+      return false;
+    }
   }
   else
   {
     return false;
   }
-  if ($password == 'abc')
-  {
-  }
-  else
-  {
-    return false;
-  }
-  $_SESSION["user"] = "ABC";
-  $_SESSION["loginTS"] = time();
   return true;
 }
 
