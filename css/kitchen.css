@@ -6,6 +6,8 @@ span.Slider {
   height: 25px;
   position: relative;
   margin: 5px 5px 5px 5px;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 span.Slider button {
@@ -22,9 +24,10 @@ body
 {
   height: 25px;
   line-height: 25px;
+  margin: 5px;
 }
 
-.Item span
+.Item span.itemName, .Item span.itemNumber
 {
   margin: 8px 5px 5px 5px;
   display: inline-block;
@@ -36,13 +39,15 @@ div.Item.disabled
   color:grey;
 }
 
-div#body {position:absolute; top:50%; left:50%; margin-left :-250px; margin-top:-50px} 
+div#bordy {position:absolute; top:50%; left:50%; margin-left :-250px; margin-top:-50px} 
+div#body {margin-left :auto; margin-right:auto; width:75%}
 div.navBar {padding: 0px 0px 0px 30px}
 span.tab {background :grey; border-width: 1px 1px 0px 1px; border-style: solid; padding: 3px 3px 2px 3px; margin: 0px 6px 0px 0px; border-radius:0px 20px 0px 0px}
 span.tab.active {background:white; padding:5px 3px 3px 3px}
-div.tabBody {background:white; border-width: 1px; border-style: solid; padding: 5px; margin:1px; border-radius: 15px}
+div.tabBody {background:white; border-width: 1px; border-style: solid; padding: 5px; margin:1px; border-radius: 15px; }
 div.tabBody.narrow {width:500px}
 
+#buildListBody {margin-left:auto; margin-right:auto; width:400px; margin-bottom:20px}
 
 .firstColumn {width:30%; float: left; text-align:right; clear:left}
 .secondColumn {width:65%; float: left; margin: 0px 0px 8px 10px;  }
