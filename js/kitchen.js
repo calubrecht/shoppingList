@@ -81,6 +81,17 @@ function logout()
   post( {"action":"logout"}, handleCheckLogin);
 }
 
+function checkLoggedIn(data)
+{
+  if (!data['isLoggedIn'])
+  {
+    setNotLoggedIn()
+    $(".msg").text("Session has timed out, please login again");
+    return false;
+  }
+  return true;
+}
+
 function handleCheckLogin(data, statusCode)
 {
   if (data['isLoggedIn'])
@@ -162,6 +173,10 @@ function forgotPassword()
 
 function setBuildList(data, statusCode)
 {
+  if (!checkLoggedIn(data))
+  {
+    return;
+  }
   $("#buildListBody").empty();
   for (var key in data['workingList'])
   {
