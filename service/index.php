@@ -54,6 +54,20 @@ else if ($request['action'] == "logout")
   logout();
   setResult($result, "isLoggedIn", isLoggedIn());
 }
+else if ($request['action'] == "register")
+{
+  $error = register($request);
+  if (!$error)
+  {
+    setResult($result, "isLoggedIn", isLoggedIn());
+    setResult($result, "msg", "Welcome " . getUser());
+  }
+  else
+  {
+    setResult($result, "isLoggedIn", isLoggedIn());
+    setResult($result, "error", $error);
+  }
+}
 else if (!isLoggedIn())
 {
   setResult($result, "isLoggedIn", isLoggedIn());

@@ -39,7 +39,16 @@
         <div><span onclick="forgotPassword()" class="forgotLink">Forgot Password?</span></div>
      </div>
      <div id="passwordTab" class="tabBody narrow">Password</div>
-     <div id="registerTab" class="tabBody narrow">Register</div>
+     <div id="registerTab" class="tabBody narrow">
+        <div class="error" id="registerError"></div>
+        <div class="msg" id="registerMsg"></div>
+        <div><div class="username firstColumn">Username: </div><input class="secondColumn registerForm" type="text" name="r_username"></div>
+        <div><div class="password firstColumn">Password:</div> <input class="secondColumn registerForm" type="password" name="r_password"></div>
+        <div><div class="password firstColumn">Confirm Password:</div> <input class="secondColumn registerForm" type="password" name="r_confirmPassword"></div>
+        <div><div class="displayName firstColumn">Display Name: </div><input class="secondColumn registerForm" type="text" name="r_displayName"></div>
+        <div><div class="email firstColumn">email: </div><input class="secondColumn registerForm" type="text" name="r_email"></div>
+        <div><input type="submit" value="Register" onclick="register()" id="reisterSubmit"></div>
+     </div>
      <div id="buildListTab" class="tabBody">
         <div class="error" id="buildListError"></div>
         <div class="msg" id="buildListMsg"></div>

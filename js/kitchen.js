@@ -81,6 +81,38 @@ function logout()
   post( {"action":"logout"}, handleCheckLogin);
 }
 
+function register()
+{
+  var userName=$( "input[name='r_username']" ).val();
+  var password=$( "input[name='r_password']" ).val();
+  var confirmPassword=$( "input[name='r_confirmPassword']" ).val();
+  var displayName=$( "input[name='r_displayName']" ).val();
+  var email=$( "input[name='r_email']" ).val();
+
+  if (!userName)
+  {
+    $(".error").text("Please supply a username");
+    return;
+  }
+  if (!password)
+  {
+    $(".error").text("Please supply a password");
+    return;
+  }
+  if (password != confirmPassword)
+  {
+    $(".error").text("Passwords do not match");
+    return;
+  }
+  if (!displayName)
+  {
+    displayName = userName;
+  }
+  post(
+    {"action":"register", "userName":userName,"password":password,"displayName":displayName,"email":email},
+    handleRegister);
+}
+
 function checkLoggedIn(data)
 {
   if (!data['isLoggedIn'])
@@ -113,6 +145,20 @@ function handleCheckLogin(data, statusCode)
   }
 }
 
+
+function handleRegister(data, statusCode)
+{
+  if (data['isLoggedIn'])
+  {
+    $( "input[name='r_username']" ).val('');
+    $( "input[name='r_password']" ).val('');
+    $( "input[name='r_confirmPassword']" ).val('');
+    $( "input[name='r_displayName']" ).val('');
+    $( "input[name='r_email']" ).val('');
+    setLoggedIn();
+  }
+  handleMessages(data);
+}
 function handleMessages(data)
 {
   clearMessages();
