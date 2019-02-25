@@ -108,6 +108,92 @@ function register($req)
   return;
 }
 
+function get_include_contents($filename, $data)
+{
+  if (is_file($filename))
+  {
+    ob_start();
+    include $filename;
+    return ob_get_clean();
+  }
+  return false;
+}
+
+function makeToken()
+{
+  $bytes = openssl_random_pseudo_bytes(25, $cStrong);
+  $hex = bin2hex($bytes);
+  if (!$cStrong)
+  {
+    error_log("Password token was not generated with cryptographically strong algorithm");
+  }
+  return $hex;
+}
+
+
+function requestReset($req)
+{
+  global $db; 
+  global $CONFIG; 
+  $user = $req["userName"];
+  try
+  {
+    $db->beginTransaction();
+    $userRes = $db->queryAll("SELECT login, email, idUsers from users where login=?", $user);
+    if (!$userRes)
+    {
+      error_log("User " . $user .  " Doesn't exist");
+      $db->rollbackTransaction();
+      return;
+    }
+    $row = $userRes[0];
+    $userId = $row["idUsers"];
+    $email = $row["email"];
+    $res = $db->queryAll("SELECT userID from passwordTokens where userID=? and timestamp > CURRENT_TIMESTAMP() - INTERVAL 2 MINUTE ", ($userId));
+    if ($res && count($res) > 0)
+    {
+      // Prevent repeated requests
+      error_log("Password request sent too recently for " . $user);
+      $db->rollbackTransaction();
+      return;
+    }
+    $fromAddress = $CONFIG["PASSWORD_RECOVERY_FROM"];
+    $headers = "From: " . $fromAddress . "\r\n";
+    $headers .= "MIME-Version: 1.0\r\n";
+    $headers .= "Content-Type: text/html; charset=ISO-8859-1\r\n";
+    $passwordToken = makeToken();
+    $res = $db->execute("REPLACE INTO passwordTokens (userID, token, timestamp) VALUES (?, ?, CURRENT_TIMESTAMP())", array($userId, $passwordToken));
+    if (!$res)
+    {
+      error_log("Could not store token for user:".$user ." -" . $db->error);
+      $db->rollbackTransaction();
+      return;
+    }
+    $data = array();
+    $data["BANNER_NAME"] = $CONFIG["BANNER_NAME"];
+    $data["host"] = $CONFIG["HOST"];
+    $data["passwordToken"] = $passwordToken;
+    $data["userName"] = $user;
+    $mailText = get_include_contents('recoveryEmail.php', $data);
+    if (!$mailText)
+    {
+      error_log("Could not load email text");
+      $db->rollbackTransaction();
+      return;
+    }
+    mail(
+      $email,
+      "Password Recovery for " .$CONFIG["BANNER_NAME"],
+      $mailText,
+      $headers);
+    $db->commitTransaction();
+  }
+  catch (Exception $e)
+  {
+    $db->rollbackTransaction();
+    error_log("Unable to send password request token because " . $e->getMessage);
+  }
+}
 
 function getUser()
 {

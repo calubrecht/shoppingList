@@ -2,10 +2,14 @@
 
 $CONFIG= array();
 
-$AD_CONFIG["DB_HOST"] = "localhost";
-$AD_CONFIG["DB_NAME"] = "shoppingList";
-$AD_CONFIG["DB_PORT"] = "3306";
-$AD_CONFIG["DB_USER"] = "";
-$AD_CONFIG["DB_PASSWORD"] = "";
+$CONFIG["DB_HOST"] = "localhost";
+$CONFIG["DB_NAME"] = "shoppingList";
+$CONFIG["DB_PORT"] = "3306";
+$CONFIG["DB_USER"] = "";
+$CONFIG["DB_PASSWORD"] = "";
+
+$CONFIG["HOST"] = "http://shopping.example.org";
+$CONFIG["BANNER_NAME"] = "Your Shopping List";
+$CONFIG["PASSWORD_RECOVERY_FROM"] = "passwordRecovery@shopping.example.org";
 
 ?>

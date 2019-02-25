@@ -17,8 +17,12 @@ function createPlannedItem(parentElement, name, number, enabled)
 }
 
 
-function pickTab(tabName)
+function pickTab(tabName, clearMessage=true)
 {
+  if (clearMessage)
+  {
+    clearMessages();
+  }
   tabBodyName = tabName + "Tab";
   $(".tabBody").each(function(index) {
     if ($(this).attr('id') == tabBodyName)
@@ -62,7 +66,19 @@ function init()
   $(".loginForm").keypress(function (e) {
       if (e.which == 13) {
             $('#loginSubmit').click();
-            return false;    //<---- Add this line
+            return false;
+          }
+  });
+  $(".registerForm").keypress(function (e) {
+      if (e.which == 13) {
+            $('#registerSubmit').click();
+            return false;
+          }
+  });
+  $(".passwordForm").keypress(function (e) {
+      if (e.which == 13) {
+            $('#passwordSubmit').click();
+            return false;
           }
   });
   post({"action":"checkLogin"}, handleCheckLogin);
@@ -113,6 +129,14 @@ function register()
     handleRegister);
 }
 
+function resetPassword()
+{
+  var userName=$( "input[name='p_username']" ).val();
+  post(
+    {"action":"resetPassword", "userName":userName},
+    handleCheckLogin);
+}
+
 function checkLoggedIn(data)
 {
   if (!data['isLoggedIn'])
@@ -159,6 +183,7 @@ function handleRegister(data, statusCode)
   }
   handleMessages(data);
 }
+
 function handleMessages(data)
 {
   clearMessages();
@@ -184,14 +209,14 @@ function setNotLoggedIn()
 {
   showTabs(["login", "register"]);
   hideTabs(["buildList", "shop", "logout", "password"]);
-  pickTab("login");
+  pickTab("login", false);
 }
 
 function setLoggedIn()
 {
   showTabs(["buildList", "shop", "logout"]);
   hideTabs(["login", "password", "register"]);
-  pickTab("buildList");
+  pickTab("buildList", false);
 }
 
 function showTabs(tabNames)
@@ -213,6 +238,8 @@ function hideTabs(tabNames)
 function forgotPassword()
 {
   showTabs(["password"]);
+  var userName=$( "input[name='username']" ).val();
+  $( "input[name='p_username']" ).val(userName);
   pickTab("password");
 }
 

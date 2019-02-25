@@ -68,6 +68,13 @@ else if ($request['action'] == "register")
     setResult($result, "error", $error);
   }
 }
+else if ($request['action'] == "resetPassword")
+{
+  logout();
+  setResult($result, "isLoggedIn", isLoggedIn());
+  requestReset($request);
+  setResult($result, "msg", "If this account exists, an email has been sent with instructions on how to reset your password.");
+}
 else if (!isLoggedIn())
 {
   setResult($result, "isLoggedIn", isLoggedIn());
