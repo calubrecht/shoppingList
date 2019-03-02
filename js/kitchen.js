@@ -3,18 +3,6 @@ const PLANNED_SHOP = "shop";
 
 var items = {[PLANNED_BUILD]:{}, [PLANNED_SHOP]:{}};
 
-function validateParseInt(val)
-{
-}
-
-function validateParseInt(val)
-{
-}
-
-function validateParseInt(val)
-{
-}
-
 function validateParsePosInt(val)
 {
   var i = parseInt(val, 10);  
@@ -66,10 +54,23 @@ function createPlannedItem(parentElement, name, number, enabled, planType)
       set: function (val)
       {
         items[planType][name][2] = val;
+        if (isBuild)
+        {
+          num.prop('disabled', !val);
+        }
       }
     };
   var slider = createSlider(box, name, enabled, sliderModel);
   slider.container = box;
+  if (isBuild)
+  {
+    $("<span>X</span>").addClass("deleteItem").click(
+      function()
+      {
+        delete items[planType][name];
+        box.remove();
+      }).appendTo(box);
+  }
 }
 
 

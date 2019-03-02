@@ -5,9 +5,8 @@ span.Slider {
   width : 100px;
   height: 25px;
   position: relative;
-  margin: 5px 5px 5px 5px;
-  display: inline-block;
-  vertical-align: middle;
+  margin-left: 5px;
+  margin-right: 5px;
 }
 
 span.Slider button {
@@ -24,19 +23,32 @@ body
 {
   height: 25px;
   line-height: 25px;
-  margin: 5px;
+  margin: 2px;
+  display:flex;
+  vertical-align: middle;
+  width:280px;
+  padding:8px;
 }
 
-.Item span.itemName, .Item span.itemNumber
+.Item span.itemName
 {
-  margin: 8px 5px 5px 5px;
-  display: inline-block;
+  margin-right: auto;
   vertical-align: middle;
+}
+.Item span.itemNumber
+{
+  vertical-align: middle;
+}
+.Item input.itemNumber
+{
+  vertical-align: middle;
+  width: 22px;
 }
 
 div.Item.disabled
 {
   color:grey;
+  background-color: rgb(235, 235, 228);
 }
 
 div#bordy {position:absolute; top:50%; left:50%; margin-left :-250px; margin-top:-50px} 
@@ -55,3 +67,10 @@ div.tabBody.narrow {width:500px}
 
 div.error {color:rgb(200,0,0); font-weight:bold; margin:4px; clear:both}
 span.forgotLink {color:rgb(200,0,0); text-decoration:underline}
+
+.deleteItem {color:rgb(255,0,0)}
+
+div.buttonPane button
+{
+  margin: 6px;
+}
