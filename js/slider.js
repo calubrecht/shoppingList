@@ -1,5 +1,5 @@
 
-var sliderStates = {};
+var sliderModels = {};
 var sliderContainers = {};
 
 var buttonWidth = 30;
@@ -10,7 +10,7 @@ var activeSliderOrigin = 0;
 function getSliderState(slider)
 {
   var key = slider.attr('id');
-  return sliderStates[key];
+  return sliderModels[key].get();
 }
 
 function setSliderContainer(key, container)
@@ -18,10 +18,14 @@ function setSliderContainer(key, container)
   sliderContainers[key] = container;
 }
 
+function setSliderModel(key, model)
+{
+  sliderModels[key + 'Slider'] = model;
+}
 function setSliderState(slider, value)
 {
   var key = slider.attr('id');
-  sliderStates[key]= value;
+  sliderModels[key].set(value);
   var container = slider.parents(".Item");
   var button = slider.children("button");
   var p;
@@ -47,7 +51,7 @@ function setSliderState(slider, value)
     button.offset({top:y, left:p});
   }
 }
-function createSlider(parentElement, name, enabled)
+function createSlider(parentElement, name, enabled, model)
 {
   var sliderNode = $("<span/>").addClass("Slider");
   var buttonNode = $("<button/>").width(buttonWidth).height(25).attr('id',name + "SliderKnob");
@@ -87,6 +91,7 @@ function createSlider(parentElement, name, enabled)
   sliderNode.mousedown(sliderPanelClick);
   buttonNode.mousedown(sliderMouseDown);
   buttonNode.on("touchstart", sliderMouseDown);
+  setSliderModel(name, model);
   setSliderState(sliderNode, enabled);
   return sliderNode;
 }

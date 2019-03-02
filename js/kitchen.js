@@ -1,18 +1,74 @@
+const PLANNED_BUILD = "build";
+const PLANNED_SHOP = "shop";
 
-function createPlannedItem(parentElement, name, number, enabled)
+var items = {[PLANNED_BUILD]:{}, [PLANNED_SHOP]:{}};
+
+function validateParseInt(val)
 {
+}
+
+function validateParseInt(val)
+{
+}
+
+function validateParseInt(val)
+{
+}
+
+function validateParsePosInt(val)
+{
+  var i = parseInt(val, 10);  
+  var f = parseFloat(val);
+  return $.isNumeric(val) &&  (i == f) && i >= 0;
+}
+
+function createPlannedItem(parentElement, name, number, enabled, planType)
+{
+  items[planType][name] = [name, number, enabled];
+  var isBuild = planType == PLANNED_BUILD;
   var box = document.createElement("div");
   box.className = "Item";
   var nameSpan = document.createElement("span");
   nameSpan.className = "itemName";
   nameSpan.innerText= name;
-  var num = document.createElement("span");
-  num.className = "itemNumber";
-  num.innerText= number;
+  var num;
+  if (isBuild)
+  {
+    num = $("<input></input>");
+    num.addClass( "itemNumber");
+    num.val(number);
+    num.focusout(function()
+      {
+        var newValue = event.target.value;
+        if (!validateParsePosInt(newValue))
+        {
+          event.target.value = items[planType][name][1];
+          event.target.focus();
+          return false;
+        }
+        items[planType][name][1] = event.target.value; console.log("Set items[" + planType +"][" + name +"] to " + event.target.value);});
+  }
+  else
+  {
+    num = $("<span></span>");
+    num.addClass( "itemNumber");
+    num.text(number);
+  }
   parentElement.append(box);
   box.appendChild(nameSpan);
-  box.appendChild(num);
-  var slider = createSlider(box, name, enabled);
+  box.appendChild(num.get(0));
+  var sliderModel =
+    {
+      get: function ()
+      {
+        return items[planType][name][2];
+      },
+      set: function (val)
+      {
+        items[planType][name][2] = val;
+      }
+    };
+  var slider = createSlider(box, name, enabled, sliderModel);
   slider.container = box;
 }
 
@@ -287,8 +343,11 @@ function setBuildList(data, statusCode)
   for (var key in data['workingList'])
   {
     var item = data['workingList'][key];
-    createPlannedItem($("#buildListBody"), item['name'], item['count'], item['active']);
+    createPlannedItem($("#buildListBody"), item['name'], item['count'], item['active'], PLANNED_BUILD);
   }
+  var buttonPane = $("<div></div>").addClass("buttonPane").appendTo("#buildListBody");
+  $("<button>Save</button>").click( function() { alert("YO")}).appendTo(buttonPane);
+  $("<button>Revert</button>").click( function() { alert("YO YO")}).appendTo(buttonPane);
 }
 
 function setShopList(data, statusCode)
