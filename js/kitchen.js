@@ -137,6 +137,39 @@ function resetPassword()
     handleCheckLogin);
 }
 
+function doResetPassword()
+{
+  var password=$( "input[name='password']" ).val();
+  var confirmPassword=$( "input[name='confirmPassword']" ).val();
+  var token=$( "input[name='token']" ).val();
+  if (!password)
+  {
+    $(".error").text("Please supply a password");
+    return;
+  }
+  if (password != confirmPassword)
+  {
+    $(".error").text("Passwords do not match");
+    return;
+  }
+  post(
+    {"action":"doResetPassword", "password":password, "token":token},
+    handleDoReset);
+}
+
+function handleDoReset(data, statusCode)
+{
+  if (data['success'])
+  {
+    alert("You have successfully changed your password. Please login in.");
+    document.location.href="/";
+  }
+  else
+  {
+    handleMessages(data);
+  }
+}
+
 function checkLoggedIn(data)
 {
   if (!data['isLoggedIn'])

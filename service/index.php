@@ -75,6 +75,36 @@ else if ($request['action'] == "resetPassword")
   requestReset($request);
   setResult($result, "msg", "If this account exists, an email has been sent with instructions on how to reset your password.");
 }
+else if ($request['action'] == "doResetPassword")
+{
+  $token = $request['token'];
+  $password = $request['password'];
+  if (!$token || !$password || $token != $_SESSION["token"])
+  {
+    error_log(" ".$token);
+    error_log(" ".$SESSION["token"]);
+    setResult($result, "success", false);
+    setResult($result, "error", "This password token cannot be found or has expired, please request a new password reset token.");
+  }
+  else
+  {
+    $username = getUsernameFromToken($request["token"]);
+    if (!$username)
+    {
+      setResult($result, "success", false);
+      setResult($result, "error", "This password token cannot be found or has expired, please request a new password reset token.");
+    }
+    else if (resetPassword($username, $password))
+    {
+      setResult($result, "success", true);
+    }
+    else
+    {
+      setResult($result, "success", false);
+      setResult($result, "error", "An unknown problem occurred restting password");
+    }
+  }
+}
 else if (!isLoggedIn())
 {
   setResult($result, "isLoggedIn", isLoggedIn());
