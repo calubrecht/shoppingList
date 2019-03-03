@@ -70,7 +70,7 @@ function createPlannedItem(parentElement, id, name, number, enabled, planType)
   {
     id = nameToId(name, planType);
   }
-  items[planType].add(name, [id, name, number, enabled]);
+  items[planType].add(id, [id, name, number, enabled]);
   var isBuild = planType == PLANNED_BUILD;
   var box = document.createElement("div");
   box.className = "Item";
@@ -89,7 +89,7 @@ function createPlannedItem(parentElement, id, name, number, enabled, planType)
         var newValue = event.target.value;
         if (!validateParsePosInt(newValue))
         {
-          event.target.value = items[planType].get(name)[2];
+          event.target.value = items[planType].get(id)[2];
           event.target.focus();
           return false;
         }
@@ -109,11 +109,11 @@ function createPlannedItem(parentElement, id, name, number, enabled, planType)
     {
       get: function ()
       {
-        return items[planType].get(name)[3];
+        return items[planType].get(id)[3];
       },
       set: function (val)
       {
-        items[planType].get(name)[3] = val;
+        items[planType].get(id)[3] = val;
         if (isBuild)
         {
           num.prop('disabled', !val);
@@ -127,7 +127,7 @@ function createPlannedItem(parentElement, id, name, number, enabled, planType)
     $("<span>X</span>").addClass("deleteItem").click(
       function()
       {
-        items[planType].remove(name);
+        items[planType].remove(id);
         box.remove();
       }).appendTo(box);
   }
