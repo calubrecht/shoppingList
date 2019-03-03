@@ -1,5 +1,6 @@
 const PLANNED_BUILD = "build";
 const PLANNED_SHOP = "shop";
+var activeTab = null;
 
 var loadedTabs = {PLANNED_BUILD: false, PLANNED_BUILD:false};
 
@@ -105,6 +106,10 @@ function createPlannedItem(parentElement, id, name, number, enabled, planType)
     num.val(number);
     num.focusout(function()
       {
+        if (!items[planType].get(id))
+        {
+           return;
+        }
         var newValue = event.target.value;
         if (!validateParsePosInt(newValue))
         {
@@ -173,12 +178,13 @@ function addItem(itemName)
   }
   itemId = createPlannedItem($("#sortableList"), null, itemName, 1, true, PLANNED_BUILD);
   hideAddDlg();
-  $("#" + itemId).find('.itemNumber').focus();
+  $("#" + itemId).find('.itemNumber').focus().select();
 }
 
 
 function pickTab(tabName, clearMessage=true)
 {
+  var previousTab = tabName;
   if (clearMessage)
   {
     clearMessages();
@@ -221,6 +227,7 @@ function pickTab(tabName, clearMessage=true)
     {
     }
   }
+  activeTab = tabName;
 }
 
 function post(data, callback)
@@ -496,7 +503,6 @@ function setBuildList(data, statusCode)
 {
   if (!checkLoggedIn(data))
   {
-    $("#buildListTab").focus();
     return;
   }
   $("#buildListBody").empty();
@@ -521,4 +527,21 @@ function setBuildList(data, statusCode)
 
 function setShopList(data, statusCode)
 {
+  if (!checkLoggedIn(data))
+  {
+    return;
+  }
+  $("#shopListBody").empty();
+  var list = $("<div>").appendTo($("#shopListBody"));
+  items[PLANNED_SHOP].clear();
+  for (var key in data['workingList'])
+  {
+    var item = data['workingList'][key];
+    if (item['active'])
+    {
+      createPlannedItem(list, item['id'], item['name'], item['count'], item['active'], PLANNED_SHOP);
+    }
+  }
+
+  loadedTabs[PLANNED_SHOP] = true;
 }
