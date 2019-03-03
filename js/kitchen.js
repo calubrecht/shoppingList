@@ -45,6 +45,17 @@ function item_collection()
       {
         this.ordering = order;
       };
+     this.getUniqueId = function(desiredId)
+     {
+       var id = desiredId;
+       var count = 0;
+       while (id in this.collection)
+       {
+         id = desiredId + count;
+         count++;
+       }
+       return id;
+     }
      this.collection = {};
      this.ordering = [];
 
@@ -61,7 +72,14 @@ function validateParsePosInt(val)
 
 function nameToId(name, planType)
 {
-  return name;
+  name = name.replace(/[^a-zA-Z0-9]+/g,'');
+  name = $.trim(name);
+  name = name.replace(/^[0-9]+/,'');
+  if (!name)
+  {
+    return "id_";
+  }
+  return "id_" + name;
 }
 
 function createPlannedItem(parentElement, id, name, number, enabled, planType)
@@ -70,6 +88,7 @@ function createPlannedItem(parentElement, id, name, number, enabled, planType)
   {
     id = nameToId(name, planType);
   }
+  id = items[planType].getUniqueId(id);
   items[planType].add(id, [id, name, number, enabled]);
   var isBuild = planType == PLANNED_BUILD;
   var box = document.createElement("div");
@@ -93,7 +112,7 @@ function createPlannedItem(parentElement, id, name, number, enabled, planType)
           event.target.focus();
           return false;
         }
-        items[planType].get(name)[1] = event.target.value;
+        items[planType].get(id)[2] = event.target.value;
       });
   }
   else
@@ -131,6 +150,30 @@ function createPlannedItem(parentElement, id, name, number, enabled, planType)
         box.remove();
       }).appendTo(box);
   }
+  return id;
+}
+
+function hideAddDlg()
+{
+  $("#modal").hide();
+  $("#buildListTab").focus();
+}
+
+function showAddDlg()
+{
+  $("#modal").show();
+  $("#modal").find("[name='itemName']").val('').focus();
+}
+
+function addItem(itemName)
+{
+  if (!itemName)
+  {
+    return;
+  }
+  itemId = createPlannedItem($("#sortableList"), null, itemName, 1, true, PLANNED_BUILD);
+  hideAddDlg();
+  $("#" + itemId).find('.itemNumber').focus();
 }
 
 
@@ -207,6 +250,29 @@ function init()
             return false;
           }
   });
+  $("#buildListTab").attr('tabindex',0);
+  $("#buildListTab").on('keydown', function (e) {
+      if (e.ctrlKey && e.key == 'a')
+      {
+        showAddDlg();
+        return false;
+      }
+  });
+  $("#modal").find('.close').click(function() {hideAddDlg();});
+  $("#addButton").click(function() {addItem($("#modal").find("[name='itemName']").val()); });
+  $("#modal").keypress(function (e) {
+      if (e.which == 13) {
+            $('#addButton').click();
+            return false;
+          }
+  });
+  $("#modal").keydown(function (e)
+    {
+      if (e.key === "Escape")
+    {
+      hideAddDlg();
+    }
+    });
   post({"action":"checkLogin"}, handleCheckLogin);
 }
 
@@ -430,6 +496,7 @@ function setBuildList(data, statusCode)
 {
   if (!checkLoggedIn(data))
   {
+    $("#buildListTab").focus();
     return;
   }
   $("#buildListBody").empty();
@@ -443,10 +510,13 @@ function setBuildList(data, statusCode)
     var item = data['workingList'][key];
     createPlannedItem(sortableList, item['id'], item['name'], item['count'], item['active'], PLANNED_BUILD);
   }
+
+  $("<div class='centeredItem'></div>").appendTo("#buildListBody").append($("<button title='Add item (Ctrl-A)'>+</button>").click( showAddDlg));
   var buttonPane = $("<div></div>").addClass("buttonPane").appendTo("#buildListBody");
   $("<button>Save</button>").click( function() { saveList(items[PLANNED_BUILD])}).appendTo(buttonPane);
   $("<button>Revert</button>").click( function() { revertBuildList()}).appendTo(buttonPane);
   loadedTabs[PLANNED_BUILD] = true;
+  $("#buildListTab").focus();
 }
 
 function setShopList(data, statusCode)
