@@ -1,7 +1,7 @@
 const PLANNED_BUILD = "build";
 const PLANNED_SHOP = "shop";
 
-loadedTabs = {PLANNED_BUILD: false, PLANNED_BUILD:false};
+var loadedTabs = {PLANNED_BUILD: false, PLANNED_BUILD:false};
 
 function item_collection()
   {
@@ -41,6 +41,10 @@ function item_collection()
         this.collection = {};
         this.ordering = [];
       };
+     this.setOrder = function(order)
+      {
+        this.ordering = order;
+      };
      this.collection = {};
      this.ordering = [];
 
@@ -55,12 +59,22 @@ function validateParsePosInt(val)
   return $.isNumeric(val) &&  (i == f) && i >= 0;
 }
 
-function createPlannedItem(parentElement, name, number, enabled, planType)
+function nameToId(name, planType)
 {
-  items[planType].add(name, [name, number, enabled]);
+  return name;
+}
+
+function createPlannedItem(parentElement, id, name, number, enabled, planType)
+{
+  if (!id)
+  {
+    id = nameToId(name, planType);
+  }
+  items[planType].add(name, [id, name, number, enabled]);
   var isBuild = planType == PLANNED_BUILD;
   var box = document.createElement("div");
   box.className = "Item";
+  box.id = id;
   var nameSpan = document.createElement("span");
   nameSpan.className = "itemName";
   nameSpan.innerText= name;
@@ -75,11 +89,12 @@ function createPlannedItem(parentElement, name, number, enabled, planType)
         var newValue = event.target.value;
         if (!validateParsePosInt(newValue))
         {
-          event.target.value = items[planType].get(name)[1];
+          event.target.value = items[planType].get(name)[2];
           event.target.focus();
           return false;
         }
-        items[planType].get(name)[1] = event.target.value; console.log("Set items[" + planType +"][" + name +"] to " + event.target.value);});
+        items[planType].get(name)[1] = event.target.value;
+      });
   }
   else
   {
@@ -94,18 +109,18 @@ function createPlannedItem(parentElement, name, number, enabled, planType)
     {
       get: function ()
       {
-        return items[planType].get(name)[2];
+        return items[planType].get(name)[3];
       },
       set: function (val)
       {
-        items[planType].get(name)[2] = val;
+        items[planType].get(name)[3] = val;
         if (isBuild)
         {
           num.prop('disabled', !val);
         }
       }
     };
-  var slider = createSlider(box, name, enabled, sliderModel);
+  var slider = createSlider(box, id, enabled, sliderModel);
   slider.container = box;
   if (isBuild)
   {
@@ -205,7 +220,14 @@ function login()
 }
 function logout()
 {
+  cleanup();
   post( {"action":"logout"}, handleCheckLogin);
+}
+
+function cleanup()
+{
+  loadedTabs = {PLANNED_BUILD: false, PLANNED_BUILD:false};
+  items = {[PLANNED_BUILD]: new item_collection(), [PLANNED_SHOP] : new item_collection()};
 }
 
 function register()
@@ -399,6 +421,10 @@ function forgotPassword()
   pickTab("password");
 }
 
+function resolveSort()
+{
+  items[PLANNED_BUILD].setOrder($("#sortableList").sortable("toArray"));
+}
 
 function setBuildList(data, statusCode)
 {
@@ -407,11 +433,15 @@ function setBuildList(data, statusCode)
     return;
   }
   $("#buildListBody").empty();
+  var sortableList = $("<div id='sortableList'>").
+    sortable(
+      {axis: 'y', stop: function (event, ui) {resolveSort()}}).
+    disableSelection().appendTo($("#buildListBody"));
   items[PLANNED_BUILD].clear();
   for (var key in data['workingList'])
   {
     var item = data['workingList'][key];
-    createPlannedItem($("#buildListBody"), item['name'], item['count'], item['active'], PLANNED_BUILD);
+    createPlannedItem(sortableList, item['id'], item['name'], item['count'], item['active'], PLANNED_BUILD);
   }
   var buttonPane = $("<div></div>").addClass("buttonPane").appendTo("#buildListBody");
   $("<button>Save</button>").click( function() { saveList(items[PLANNED_BUILD])}).appendTo(buttonPane);

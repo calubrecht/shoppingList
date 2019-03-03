@@ -117,7 +117,11 @@ else if ($request['action'] == "getWorkingList")
 }
 else if ($request['action'] == "saveList")
 {
-  setWorkingList(getUser(), $request['list']);
+  $res = setWorkingList(getUser(), $request['list']);
+  if ($res)
+  {
+    setResult($result, "error", $res);
+  }
   setResult($result, "isLoggedIn", isLoggedIn());
 }
 else
