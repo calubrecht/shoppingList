@@ -1,7 +1,52 @@
 const PLANNED_BUILD = "build";
 const PLANNED_SHOP = "shop";
 
-var items = {[PLANNED_BUILD]:{}, [PLANNED_SHOP]:{}};
+loadedTabs = {PLANNED_BUILD: false, PLANNED_BUILD:false};
+
+function item_collection()
+  {
+     this.add = function(name, value)
+       {
+         this.collection[name] = value;
+         this.ordering.push(name);
+       };
+     this.remove = function(name)
+       {
+         if (this.collection[name])
+         {
+           delete this.collection[name];
+           var index = this.ordering.indexOf(name);
+           if (index >=0)
+           {
+             this.ordering.splice(index,1);
+           }
+         }
+       };
+     this.get = function (name)
+       {
+         return this.collection[name];
+       };
+
+     this.toList = function()
+      {
+        var out = [];
+        for (var i = 0; i < this.ordering.length; i++)
+        {
+          out.push(this.collection[this.ordering[i]]);
+        }
+        return out;
+      };
+     this.clear = function()
+      {
+        this.collection = {};
+        this.ordering = [];
+      };
+     this.collection = {};
+     this.ordering = [];
+
+  };
+
+var items = {[PLANNED_BUILD]: new item_collection(), [PLANNED_SHOP] : new item_collection()};
 
 function validateParsePosInt(val)
 {
@@ -12,7 +57,7 @@ function validateParsePosInt(val)
 
 function createPlannedItem(parentElement, name, number, enabled, planType)
 {
-  items[planType][name] = [name, number, enabled];
+  items[planType].add(name, [name, number, enabled]);
   var isBuild = planType == PLANNED_BUILD;
   var box = document.createElement("div");
   box.className = "Item";
@@ -30,11 +75,11 @@ function createPlannedItem(parentElement, name, number, enabled, planType)
         var newValue = event.target.value;
         if (!validateParsePosInt(newValue))
         {
-          event.target.value = items[planType][name][1];
+          event.target.value = items[planType].get(name)[1];
           event.target.focus();
           return false;
         }
-        items[planType][name][1] = event.target.value; console.log("Set items[" + planType +"][" + name +"] to " + event.target.value);});
+        items[planType].get(name)[1] = event.target.value; console.log("Set items[" + planType +"][" + name +"] to " + event.target.value);});
   }
   else
   {
@@ -49,11 +94,11 @@ function createPlannedItem(parentElement, name, number, enabled, planType)
     {
       get: function ()
       {
-        return items[planType][name][2];
+        return items[planType].get(name)[2];
       },
       set: function (val)
       {
-        items[planType][name][2] = val;
+        items[planType].get(name)[2] = val;
         if (isBuild)
         {
           num.prop('disabled', !val);
@@ -67,7 +112,7 @@ function createPlannedItem(parentElement, name, number, enabled, planType)
     $("<span>X</span>").addClass("deleteItem").click(
       function()
       {
-        delete items[planType][name];
+        items[planType].remove(name);
         box.remove();
       }).appendTo(box);
   }
@@ -103,11 +148,20 @@ function pickTab(tabName, clearMessage=true)
   });
   if (tabName == "buildList")
   {
-    post({"action":"getWorkingList"}, setBuildList);
+    if (!loadedTabs[PLANNED_BUILD])
+    {
+      post({"action":"getWorkingList"}, setBuildList);
+    }
   }
   if (tabName == "shop")
   {
-    post({"action":"getWorkingList"}, setShopList);
+    if (loadedTabs[PLANNED_BUILD])
+    {
+      post({"action":"getWorkingList"}, setShopList);
+    }
+    else
+    {
+    }
   }
 }
 
@@ -212,6 +266,18 @@ function doResetPassword()
   post(
     {"action":"doResetPassword", "password":password, "token":token},
     handleDoReset);
+}
+
+function saveList(list)
+{
+  post(
+    {"action":"saveList", "list": list.toList()},
+    handleCheckLogin);
+}
+
+function revertBuildList()
+{
+  post({"action":"getWorkingList"}, setBuildList);
 }
 
 function handleDoReset(data, statusCode)
@@ -341,14 +407,16 @@ function setBuildList(data, statusCode)
     return;
   }
   $("#buildListBody").empty();
+  items[PLANNED_BUILD].clear();
   for (var key in data['workingList'])
   {
     var item = data['workingList'][key];
     createPlannedItem($("#buildListBody"), item['name'], item['count'], item['active'], PLANNED_BUILD);
   }
   var buttonPane = $("<div></div>").addClass("buttonPane").appendTo("#buildListBody");
-  $("<button>Save</button>").click( function() { alert("YO")}).appendTo(buttonPane);
-  $("<button>Revert</button>").click( function() { alert("YO YO")}).appendTo(buttonPane);
+  $("<button>Save</button>").click( function() { saveList(items[PLANNED_BUILD])}).appendTo(buttonPane);
+  $("<button>Revert</button>").click( function() { revertBuildList()}).appendTo(buttonPane);
+  loadedTabs[PLANNED_BUILD] = true;
 }
 
 function setShopList(data, statusCode)
