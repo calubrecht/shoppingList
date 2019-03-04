@@ -130,7 +130,7 @@ function item_collection()
          id = desiredId + count;
          count++;
        }
-       while (id in this.aisles)
+       while (this.aisles.includes(id))
        {
          id = desiredId + count;
          count++;
@@ -805,6 +805,7 @@ function setBuildList(data, statusCode)
   {
     return;
   }
+  handleMessages(data);
   $("#buildListBody").empty();
   var aisleSorter = $("<div id='aisleSorter'>").
     sortable(

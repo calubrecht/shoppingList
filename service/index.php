@@ -111,15 +111,26 @@ else if (!isLoggedIn())
 }
 else if ($request['action'] == "getWorkingList")
 {
-  $workingList = getWorkingList(getUser(), "saved");
+  $msg = '';
+  $workingList = getWorkingList(getUser(), "saved", $msg);
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "workingList", $workingList);
+  if ($msg)
+  {
+    setResult($result, "msg", $msg);
+  }
 }
 else if ($request['action'] == "getShopList")
 {
-  $workingList = getWorkingList(getUser(), "shop");
+  $msg = '';
+  $workingList = getWorkingList(getUser(), "shop", $msg);
+  error_log("msg = " . $msg);
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "workingList", $workingList);
+  if ($msg)
+  {
+    setResult($result, "msg", $msg);
+  }
 }
 else if ($request['action'] == "saveList")
 {
@@ -138,7 +149,8 @@ else if ($request['action'] == "setShopList")
   {
     setResult($result, "error", $res);
   }
-  $workingList = getWorkingList(getUser(), "shop");
+  $msg = null;
+  $workingList = getWorkingList(getUser(), "shop", $msg);
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "workingList", $workingList);
 }
@@ -152,7 +164,8 @@ else if ($request['action'] == "resetDoneState")
 {
   resetDoneState(getUser(), "saved");
   resetDoneState(getUser(), "shop");
-  $workingList = getWorkingList(getUser(), "shop");
+  $msg = null;
+  $workingList = getWorkingList(getUser(), "shop", $msg);
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "workingList", $workingList);
 }

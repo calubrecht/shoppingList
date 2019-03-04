@@ -1,6 +1,6 @@
 <?php
 
-function getWorkingList($user, $type)
+function getWorkingList($user, $type, &$msg)
 {
   global $db;
   $db->beginTransaction();
@@ -21,11 +21,20 @@ function getWorkingList($user, $type)
     else
     {
       $db->commitTransaction();
+      if (type == 'shop')
+      {
+        return getWorkingList($user, "saved", $msg);
+      }
+      error_log("Sending default default");
+      $msg = "Welcome " . getUser() . ". You have no saved list. Here are some things to get you started.";
       return  array(
-          array("id" => "Sushi", "name" => "Sushi", "count" => 1, "aisle" => "1", "active" => true, "done"=> false),
-          array("id" => "Pumpkin", "name" => "Pumpkin", "count" => 2, "aisle" => "2", "active"=> false, "done"=> false),
-          array("id" => "Flesh", "name" => "Flesh", "count" => 1, "aisle" => "1", "active"=>true, "done"=> false),
-          array("id" => "Anaconda", "name" => "Anaconda", "count" => 1, "aisle" => "1", "active"=>true, "done"=> false));
+          array("id" => "id_Lumchmeat", "name" => "Lunchmeat", "count" => 1, "aisle" => "Deli Aisle", "active" => true, "done"=> false),
+          array("id" => "id_SwissCheese", "name" => "Swiss Cheese", "count" => 2, "aisle" => "Deli Aisle", "active"=> true, "done"=> false),
+          array("id" => "id_Liverwurst", "name" => "Liverwurst", "count" => 1, "aisle" => "Deli Aisle", "active"=> false, "done"=> false),
+          array("id" => "id_Tomatoes", "name" => "Tomatoes", "count" => 8, "aisle" => "Produce Aisle", "active"=>true, "done"=> false),
+          array("id" => "id_BranFlakes", "name" => "Bran Flakes", "count" => 1, "aisle" => "Aisle 3", "active"=>true, "done"=> false),
+          array("id" => "id_Milk", "name" => "Milk", "count" => 2, "aisle" => "Dairy Aisle", "active"=>true, "done"=> false),
+          array("id" => "id_FrozenPizza", "name" => "Frozen Pizza", "count" => 1, "aisle" => "Frozen Aisle", "active"=>true, "done"=> false));
     }
   }
   catch (Exception $e)
