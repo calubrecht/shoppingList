@@ -134,6 +134,36 @@ span.aisleLabel
   width:180px;
 }
 
+#printView
+{
+  background-color: #fefefe;
+  margin: 5% auto;
+  border: 1px solid #888;
+  width: 80%;
+  padding-right: 10px;
+  border-radius: 15px;
+}
+
+#printView:focus {outline:none;}
+#printView .content
+{
+  padding: 30px;
+}
+
+#printView .content .printAisle
+{
+  margin-bottom: 10px;
+}
+
+#printView .content .printAisle .printAisleLabel
+{
+  font-weight: bold;
+}
+#printView .content .printAisle .printItem
+{
+  margin-left: 30px;
+}
+
 .close
 {
   color: #aaa;
@@ -164,4 +194,17 @@ span.aisleLabel
   #buildListBody {width:100%}
   #shopListBody {width:100%}
 
+}
+
+@media only print
+{
+  .close {display:none;}
+
+  #printView
+  {
+    margin: 5% auto;
+    border: none;
+    padding-right: 10px;
+    border-radius: 15px;
+  }
 }

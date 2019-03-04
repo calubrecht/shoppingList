@@ -148,6 +148,14 @@ else if ($request['action'] == "saveDoneState")
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "keepTab", true);
 }
+else if ($request['action'] == "resetDoneState")
+{
+  resetDoneState(getUser(), "saved");
+  resetDoneState(getUser(), "shop");
+  $workingList = getWorkingList(getUser(), "shop");
+  setResult($result, "isLoggedIn", isLoggedIn());
+  setResult($result, "workingList", $workingList);
+}
 else
 {
   setResult($result, "isLoggedIn", isLoggedIn());

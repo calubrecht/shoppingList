@@ -53,16 +53,37 @@ function item_collection()
         }
         return out;
       };
+     this.toPrintableView = function(parentEl)
+     { 
+       for (aisleIndex in this.aisleOrder)
+       {
+         var aisleName = this.aisleOrder[aisleIndex];
+         var aisle = $('<div class="printAisle">').appendTo(parentEl);
+         aisle.append($('<div class="printAisleLabel">' + aisleName + '</div>'));
+         for (itemIndex in this.ordering)
+         {
+           var itemId = this.ordering[ itemIndex];
+           var item = this.collection[itemId];
+           if (item.aisle == aisleName)
+           {
+             aisle.append($('<div class="printItem">' + item.count + " " + item.name + '</div>'));
+           }
+         }
+
+       }
+     };
      this.clear = function()
       {
         this.collection = {};
         this.ordering = [];
         this.aisles = [];
+        this.aisleOrder = [];
         this.aisleNames = {};
       };
      this.setOrder = function(aisleOrder, aisles)
       {
         this.ordering = [];
+        this.aisleOrder = aisleOrder;
         for (i in aisleOrder)
         {
           var aisleName = aisleOrder[i];
@@ -77,6 +98,7 @@ function item_collection()
      this.addAisle = function(aisleId, aisleName)
      {
        this.aisles .push(aisleId);
+       this.aisleOrder.push(aisleName);
        this.aisleNames[aisleName] = aisleId;
      }
      this.getUniqueId = function(desiredId)
@@ -97,6 +119,7 @@ function item_collection()
      }
      this.collection = {};
      this.aisles = [];
+     this.aisleOrder = [];
      this.aisleNames = {};
      this.ordering = [];
 
@@ -267,17 +290,28 @@ function showAddDlg()
 {
   fillAisleSelect();
   $("#modal").show();
+  $('.modalDialog').hide();
   $('#createItemDialog').show();
-  $('#createAisleDialog').hide();
   $("#modal").find("[name='itemName']").val('').focus();
 }
 function showAddAisleDlg()
 {
   $("#createAisleError").text("");
   $("#modal").show();
+  $('.modalDialog').hide();
   $('#createAisleDialog').show();
-  $('#createItemDialog').hide();
   $("#modal").find("[name='aisleName']").val('').focus();
+}
+
+function showPrintableView(item_collection)
+{
+  $("#createAisleError").text("");
+  $("#modal").show();
+  $('.modalDialog').hide();
+  $('#printView').show();
+  $('#printView').find('.content').empty();
+  item_collection.toPrintableView($('#printView').find('.content'));
+  $('#printView').focus();
 }
 
 function addItem(itemName, aisleName)
@@ -427,6 +461,32 @@ function init()
     }
     });
   post({"action":"checkLogin"}, handleCheckLogin);
+  $("#printView").on('keydown', function (e) {
+      if (e.ctrlKey && e.key == 'a')
+      {
+        selectText($("#printView").find('.content'));
+        return false;
+      }
+  });
+}
+
+function selectText(node)
+{
+  if (document.body.createTextRange)
+  {
+    var range = document.body.createTextRange();
+    range.moveToElementText(node.get(0));
+    rang.select();
+  }
+  else if (window.getSelection)
+  {
+    var selection = window.getSelection();
+    var range = document.createRange();
+    range.selectNodeContents(node.get(0));
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+
 }
 
 function login()
@@ -734,5 +794,9 @@ function setShopList(data, statusCode)
     }
   }
 
+  var buttonPane = $("<div></div>").addClass("buttonPane").appendTo("#shopListBody");
+  $("<button>Reset</button>").click( function() { 
+      post({"action":"resetDoneState"}, setShopList);}).appendTo(buttonPane);
+  $("<button>Printable View</button>").click( function() { showPrintableView(items[PLANNED_SHOP]); }).appendTo(buttonPane);
   loadedTabs[PLANNED_SHOP] = true;
 }
