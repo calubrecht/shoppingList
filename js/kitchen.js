@@ -582,7 +582,7 @@ function setBuildList(data, statusCode)
     if (aisle != aisleName)
     {
       var aisleID = items[PLANNED_BUILD].getUniqueId(nameToId('aisle_', aisle));
-      var aisleDiv = $('<div class="aisle" id="' + aisleID + '">' + aisle + '</div>');
+      var aisleDiv = $('<div class="aisle" id="' + aisleID + '"><span class="aisleLabel">' + aisle + '</span></div>');
       if (!aisleName)
       {
         aisleDiv.addClass('firstAisle');
@@ -623,7 +623,7 @@ function setShopList(data, statusCode)
       {
         aisleName = aisle;
         var aisleID = items[PLANNED_SHOP].getUniqueId(nameToId('s_aisle_', aisle));
-        var aisleDiv = $('<div class="aisle" id="' + aisleID + '">' + aisle + '</div>');
+        var aisleDiv = $('<div class="aisle" id="' + aisleID + '"><span class="aisleLabel">' + aisle + '</span></div>');
         items[PLANNED_SHOP].addAisle(aisleID);
         list.append(aisleDiv);
       }

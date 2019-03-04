@@ -69,6 +69,7 @@ div.tabBody {background:white; border-width: 1px; border-style: solid; padding: 
 div.tabBody.narrow {width:500px}
 
 #buildListBody {margin-left:auto; margin-right:auto; width:400px; margin-bottom:20px}
+#shopListBody {margin-left:auto; margin-right:auto; width:400px; margin-bottom:20px}
 
 #buildListTab:focus {outline:none;}
 
@@ -85,6 +86,16 @@ span.forgotLink {color:rgb(200,0,0); text-decoration:underline}
 div.buttonPane button
 {
   margin: 6px;
+}
+
+span.aisleLabel
+{
+    border-width: 3px;
+    border-color: darkgrey;
+    border-style: outset;
+    border-radius: 8px;
+    padding: 3px 25px 3px 5px;
+    background: silver;
 }
 
 .modal
@@ -149,5 +160,6 @@ div.buttonPane button
   
   div.tabBody.narrow {width:90%}
   #buildListBody {width:100%}
+  #shopListBody {width:100%}
 
 }
