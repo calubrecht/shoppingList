@@ -221,10 +221,7 @@ function pickTab(tabName, clearMessage=true)
   });
   if (tabName == "buildList")
   {
-    if (!loadedTabs[PLANNED_BUILD])
-    {
-      post({"action":"getShopList"}, setBuildList);
-    }
+     post({"action":"getShopList"}, setBuildList);
   }
   if (tabName == "shop")
   {
