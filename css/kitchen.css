@@ -70,6 +70,8 @@ div.tabBody.narrow {width:500px}
 
 #buildListBody {margin-left:auto; margin-right:auto; width:400px; margin-bottom:20px}
 
+#buildListTab:focus {outline:none;}
+
 .firstColumn {width:30%; float: left; text-align:right; clear:left}
 .secondColumn {width:65%; float: left; margin: 0px 0px 8px 10px;  }
 .secondColumnCheck {float: left; margin: 0px 0px 8px 10px; text-align:left; }

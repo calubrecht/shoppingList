@@ -125,4 +125,38 @@ function setWorkingList($user, $type, $list)
 }
 
 
+function saveDoneState($user, $request)
+{
+  global $db;
+  $db->beginTransaction();
+  $userId = getLoginInfo($user)['idusers'];
+  try
+  {
+    error_log(json_encode($request) . ' ' . $userId);
+    $id = $request['id'];
+    $doneState = $request['doneState'] ? 1 : 0;
+    error_log("$doneState $userId $id");
+    $res = $db->execute("UPDATE lists set done = ? where userId =? and listType='shop' and id=?", array($doneState, $userId, $id)); 
+    if (!$res)
+    {
+       $db->rollbackTransaction();
+       if ($db->error)
+       {
+         error_log("Unable to save done state for user" . $user . " - " . $db->error);
+       }
+       else
+       {
+         error_log("Unable to save done state for user" . $user . " - unknown error");
+       }
+       return "Unable to save done state";
+    }
+  }
+  catch (Exception $e)
+  {
+    $db->rollbackTransaction();
+    error_log("Unable to save done state for user" . $user . " - " . $e->getMessage());
+    return "Failed to save list"; 
+  }
+  $db->commitTransaction();
+}
 ?>

@@ -141,6 +141,12 @@ else if ($request['action'] == "setShopList")
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "workingList", $workingList);
 }
+else if ($request['action'] == "saveDoneState")
+{
+  saveDoneState(getUser(), $request);
+  setResult($result, "isLoggedIn", isLoggedIn());
+  setResult($result, "keepTab", true);
+}
 else
 {
   setResult($result, "isLoggedIn", isLoggedIn());

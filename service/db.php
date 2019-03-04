@@ -17,7 +17,7 @@ class dbHolder
   {
     try
     { 
-      unset($this->error);
+      $this->error = '';
       $this->dbInit();
       $params = is_array($arguments) ? $arguments : array($arguments);
       $statement = $this->db->prepare($query);
@@ -46,7 +46,7 @@ class dbHolder
   {
     try
     { 
-      unset($this->error);
+      $this->error = '';
       $this->dbInit();
       $params = is_array($arguments) ? $arguments : array($arguments);
       $statement = $this->db->prepare($query);

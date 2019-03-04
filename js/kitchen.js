@@ -130,6 +130,7 @@ function createPlannedItem(parentElement, id, name, number, enabled, done, planT
   box.appendChild(nameSpan);
   box.appendChild(num.get(0));
   var sliderIndex = isBuild ? 3 : 4;
+  var sliderState = isBuild ? enabled: !done;
   var sliderModel =
     {
       get: function ()
@@ -143,9 +144,16 @@ function createPlannedItem(parentElement, id, name, number, enabled, done, planT
         {
           num.prop('disabled', !val);
         }
+        else
+        {
+          if (loadedTabs[PLANNED_SHOP])
+          {
+            saveDoneState(id, !val);
+          }
+        }
       }
     };
-  var slider = createSlider(box, id, enabled, sliderModel);
+  var slider = createSlider(box, id, sliderState, sliderModel);
   slider.container = box;
   if (isBuild)
   {
@@ -372,6 +380,13 @@ function saveList(list)
     handleCheckLogin);
 }
 
+function saveDoneState(id, val)
+{
+  post(
+    {"action":"saveDoneState", "id": id, "doneState": val},
+    handleCheckLogin);
+}
+
 function revertBuildList()
 {
   post({"action":"getWorkingList"}, setBuildList);
@@ -405,7 +420,10 @@ function handleCheckLogin(data, statusCode)
 {
   if (data['isLoggedIn'])
   {
-    setLoggedIn();
+    if (!data['keepTab'])
+    {
+      setLoggedIn();
+    }
   }
   else
   {
@@ -529,6 +547,7 @@ function setBuildList(data, statusCode)
 
 function setShopList(data, statusCode)
 {
+  loadedTabs[PLANNED_SHOP] = false;
   if (!checkLoggedIn(data))
   {
     return;
