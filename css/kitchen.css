@@ -135,3 +135,19 @@ div.buttonPane button
   text-decoration: none;
   cursor: pointer;
 }
+
+@media only screen and (max-width: 650px)
+{
+  div#body
+  {
+    width:100%;
+  }
+  tabBody
+  {
+    overflow:hidden;
+  }
+  
+  div.tabBody.narrow {width:90%}
+  #buildListBody {width:100%}
+
+}
