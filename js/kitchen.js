@@ -95,6 +95,26 @@ function item_collection()
           }
         }
       };
+     this.renameAisle = function(oldName, newName)
+     {
+       for (i in this.aisleOrder)
+       {
+         if (this.aisleOrder[i] == oldName)
+         {
+           this.aisleOrder[i] = newName;
+         }
+       }
+       this.aisleNames[newName] = this.aisleNames[oldName];
+       delete this.aisleNames[oldName];
+       for (j in this.collection)
+       {
+         var item = this.collection[j];
+         if (item.aisle == oldName)
+         {
+           item.aisle = newName;
+         }
+       }
+     };
      this.addAisle = function(aisleId, aisleName)
      {
        this.aisles .push(aisleId);
@@ -234,14 +254,66 @@ function createPlannedItem(parentElement, id, name, aisle, number, enabled, done
   return id;
 }
 
-function createAisle(aisleID, aisle)
+var editingName= null;
+
+function createAisle(aisleID, aisle, collection, editable)
 {
-  aisleDiv = $('<div class="aisle" id="' + aisleID + '"><span class="aisleLabel">' + aisle + '</span></div>');
+  aisleDiv = $('<div class="aisle" id="' + aisleID + '"><span class="aisleLabel">' + aisle + '</span></div>'); 
   aisleDiv.sortable(
   {axis: 'y', items:'.Item', handle:'.itemName', stop: function (event, ui) {resolveSort();}});
   aisleName = aisle;
+  if (editable)
+  {
+    var aisleLabel = aisleDiv.find('.aisleLabel');
+    aisleLabel.attr('contenteditable',true);
+    aisleLabel.dblclick(function() { $("#aisleSorter").sortable('disable'); editingName = $(this).text();  $(this).focus()});
+    aisleLabel.focusout(function() { commitAisleNameChange($(this));});
+    aisleLabel.keypress(function (e) {
+        if (e.which == 13) {
+              commitAisleNameChange($(this));
+              return false;
+            }
+    });
+    aisleLabel.keydown(function (e)
+    {
+      if (e.key === "Escape")
+      {
+        revertAisleName($(this));
+      }
+    });
+  }
   $("#aisleSorter").append(aisleDiv);
-  items[PLANNED_BUILD].addAisle(aisleID, aisleName);
+  collection.addAisle(aisleID, aisleName);
+}
+
+function commitAisleNameChange(element)
+{
+  var newName = element.text().trim();
+  if (newName == editingName)
+  {
+    console.log('Noting to do here');
+    revertAisleName(element);
+    return;
+  }
+  else if (newName == '' || (newName in items[PLANNED_SHOP].aisleNames))
+  {
+    console.log('Invalid name')
+    revertAisleName(element);
+    return;
+  }
+  console.log('Changing ' + editingName + ' to ' + element.text());
+  element.text(newName);
+  items[PLANNED_BUILD].renameAisle(editingName, newName);
+  $("#buildListTab").focus();
+  $("#aisleSorter").sortable('enable'); 
+}
+
+function revertAisleName(element)
+{
+  element.text(editingName);
+  $("#buildListTab").focus();
+  $("#aisleSorter").sortable('enable'); 
+  console.log('Reverting aisle name');
 }
 
 function linkAisles()
@@ -330,6 +402,7 @@ function addItem(itemName, aisleName)
 
 function addAisle(aisleName)
 {
+  aisleName = aisleName.trim();
   if (!aisleName)
   {
     return;
@@ -340,7 +413,7 @@ function addAisle(aisleName)
     return;
   }
   var aisleID = items[PLANNED_BUILD].getUniqueId(nameToId('aisle_', aisleName));
-  createAisle(aisleID, aisleName);
+  createAisle(aisleID, aisleName, items[PLANNED_BUILD], true);
   linkAisles();
   hideAddDlg();
 }
@@ -735,8 +808,7 @@ function setBuildList(data, statusCode)
   $("#buildListBody").empty();
   var aisleSorter = $("<div id='aisleSorter'>").
     sortable(
-      {axis: 'y', handle:".aisleLabel",items:'.aisle',stop: function (event, ui) {resolveSort();}}).
-    disableSelection().appendTo($("#buildListBody"));
+      {axis: 'y', handle:".aisleLabel",items:'.aisle',stop: function (event, ui) {resolveSort();}}).  appendTo($("#buildListBody"));
   items[PLANNED_BUILD].clear();
   var aisleDiv = null;
   var aisleName = null;
@@ -747,7 +819,7 @@ function setBuildList(data, statusCode)
     if (aisle != aisleName)
     {
       var aisleID = items[PLANNED_BUILD].getUniqueId(nameToId('aisle_', aisle));
-      createAisle(aisleID, aisle);
+      createAisle(aisleID, aisle, items[PLANNED_BUILD], true);
       aisleDiv = $("#" + aisleID);
       aisleName = aisle;
     }
@@ -786,8 +858,8 @@ function setShopList(data, statusCode)
       {
         aisleName = aisle;
         var aisleID = items[PLANNED_SHOP].getUniqueId(nameToId('s_aisle_', aisle));
-        var aisleDiv = $('<div class="aisle" id="' + aisleID + '"><span class="aisleLabel">' + aisle + '</span></div>');
-        items[PLANNED_SHOP].addAisle(aisleID, aisleName);
+        createAisle(aisleID, aisle, items[PLANNED_SHOP], false);
+        aisleDiv = $("#" + aisleID);
         list.append(aisleDiv);
       }
       createPlannedItem(list, item['id'], item['name'], item['aisle'], item['count'], item['active'], item['done'], PLANNED_SHOP);
