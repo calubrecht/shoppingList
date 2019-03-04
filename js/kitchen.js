@@ -58,6 +58,7 @@ function item_collection()
         this.collection = {};
         this.ordering = [];
         this.aisles = [];
+        this.aisleNames = {};
       };
      this.setOrder = function(aisleOrder, aisles)
       {
@@ -73,9 +74,10 @@ function item_collection()
           }
         }
       };
-     this.addAisle = function(aisleId)
+     this.addAisle = function(aisleId, aisleName)
      {
        this.aisles .push(aisleId);
+       this.aisleNames[aisleName] = aisleId;
      }
      this.getUniqueId = function(desiredId)
      {
@@ -95,6 +97,7 @@ function item_collection()
      }
      this.collection = {};
      this.aisles = [];
+     this.aisleNames = {};
      this.ordering = [];
 
   };
@@ -208,6 +211,37 @@ function createPlannedItem(parentElement, id, name, aisle, number, enabled, done
   return id;
 }
 
+function createAisle(aisleID, aisle)
+{
+  aisleDiv = $('<div class="aisle" id="' + aisleID + '"><span class="aisleLabel">' + aisle + '</span></div>');
+  aisleDiv.sortable(
+  {axis: 'y', items:'.Item',stop: function (event, ui) {resolveSort();}});
+  aisleName = aisle;
+  $("#aisleSorter").append(aisleDiv);
+  items[PLANNED_BUILD].addAisle(aisleID, aisleName);
+}
+
+function linkAisles()
+{
+  var sortableAisles = [];
+  $("#aisleSorter").find(".aisle").each(function () {sortableAisles.push($(this));});
+  for (var firstIdx = 0; firstIdx < sortableAisles.length; firstIdx++)
+  {
+    var otherAisles = []
+    for (var secondIdx = 0; secondIdx < sortableAisles.length; secondIdx++)
+    {
+      if (firstIdx != secondIdx)
+      {
+        otherAisles.push('#' + sortableAisles[secondIdx].attr('id')); 
+      }
+    }
+    if (otherAisles.length > 0)
+    {
+      sortableAisles[firstIdx].sortable("option", "connectWith", otherAisles.join());
+    }
+  }
+}
+
 function hideAddDlg()
 {
   $("#modal").hide();
@@ -217,7 +251,17 @@ function hideAddDlg()
 function showAddDlg()
 {
   $("#modal").show();
+  $('#createItemDialog').show();
+  $('#createAisleDialog').hide();
   $("#modal").find("[name='itemName']").val('').focus();
+}
+function showAddAisleDlg()
+{
+  $("#createAisleError").text("");
+  $("#modal").show();
+  $('#createAisleDialog').show();
+  $('#createItemDialog').hide();
+  $("#modal").find("[name='aisleName']").val('').focus();
 }
 
 function addItem(itemName)
@@ -226,9 +270,27 @@ function addItem(itemName)
   {
     return;
   }
-  itemId = createPlannedItem($("#sortableList"), null, itemName, 'Aisle 1',1, true, false, PLANNED_BUILD);
+  var aisleId = items[PLANNED_BUILD].aisleNames['Aisle 1'];
+  itemId = createPlannedItem($("#" + aisleId), null, itemName, 'Aisle 1',1, true, false, PLANNED_BUILD);
   hideAddDlg();
   $("#" + itemId).find('.itemNumber').focus().select();
+}
+
+function addAisle(aisleName)
+{
+  if (!aisleName)
+  {
+    return;
+  }
+  if (aisleName in items[PLANNED_BUILD].aisleNames)
+  {
+    $("#createAisleError").text("Please enter a unique aisle name");
+    return;
+  }
+  var aisleID = items[PLANNED_BUILD].getUniqueId(nameToId('aisle_', aisleName));
+  createAisle(aisleID, aisleName);
+  linkAisles();
+  hideAddDlg();
 }
 
 
@@ -313,11 +375,25 @@ function init()
         return false;
       }
   });
+  $("#buildListTab").on('keydown', function (e) {
+      if (e.ctrlKey && e.key == 'l')
+      {
+        showAddAisleDlg();
+        return false;
+      }
+  });
   $("#modal").find('.close').click(function() {hideAddDlg();});
-  $("#addButton").click(function() {addItem($("#modal").find("[name='itemName']").val()); });
-  $("#modal").keypress(function (e) {
+  $("#addItemButton").click(function() {addItem($("#modal").find("[name='itemName']").val()); });
+  $("#addAisleButton").click(function() {addAisle($("#modal").find("[name='aisleName']").val()); });
+  $("#createItemDialog").keypress(function (e) {
       if (e.which == 13) {
-            $('#addButton').click();
+            $('#addItemButton').click();
+            return false;
+          }
+  });
+  $("#createAisleDialog").keypress(function (e) {
+      if (e.which == 13) {
+            $('#addAisleButton').click();
             return false;
           }
   });
@@ -580,9 +656,8 @@ function setBuildList(data, statusCode)
       {axis: 'y', handle:".aisleLabel",items:'.aisle',stop: function (event, ui) {resolveSort();}}).
     disableSelection().appendTo($("#buildListBody"));
   items[PLANNED_BUILD].clear();
-  var aisleName = null;
   var aisleDiv = null;
-  var sortableAisles = [];
+  var aisleName = null;
   for (var key in data['workingList'])
   {
     var item = data['workingList'][key];
@@ -590,37 +665,20 @@ function setBuildList(data, statusCode)
     if (aisle != aisleName)
     {
       var aisleID = items[PLANNED_BUILD].getUniqueId(nameToId('aisle_', aisle));
-      aisleDiv = $('<div class="aisle" id="' + aisleID + '"><span class="aisleLabel">' + aisle + '</span></div>');
-      aisleDiv.sortable(
-      {axis: 'y', items:'.Item',stop: function (event, ui) {resolveSort();}});
+      createAisle(aisleID, aisle);
+      aisleDiv = $("#" + aisleID);
       aisleName = aisle;
-      aisleSorter.append(aisleDiv);
-      items[PLANNED_SHOP].addAisle(aisleID);
-      sortableAisles.push(aisleDiv);
     }
     createPlannedItem(aisleDiv, item['id'], item['name'], item['aisle'], item['count'], item['active'], item['done'], PLANNED_BUILD);
   }
 
-  for (var firstIdx = 0; firstIdx < sortableAisles.length; firstIdx++)
-  {
-    var otherAisles = []
-    for (var secondIdx = 0; secondIdx < sortableAisles.length; secondIdx++)
-    {
-      if (firstIdx != secondIdx)
-      {
-        otherAisles.push('#' + sortableAisles[secondIdx].attr('id')); 
-      }
-    }
-    if (otherAisles.length > 0)
-    {
-      sortableAisles[firstIdx].sortable("option", "connectWith", otherAisles.join());
-    }
-  }
+  linkAisles();
 
   $("<div class='centeredItem'></div>").appendTo("#buildListBody").append($("<button title='Add item (Ctrl-A)'>+</button>").click( showAddDlg));
   var buttonPane = $("<div></div>").addClass("buttonPane").appendTo("#buildListBody");
   $("<button>Save</button>").click( function() { saveList(items[PLANNED_BUILD])}).appendTo(buttonPane);
   $("<button>Revert</button>").click( function() { revertBuildList()}).appendTo(buttonPane);
+  $("<button title='Ctrl-L'>Add Aisle</button>").click( showAddAisleDlg).appendTo(buttonPane);
   loadedTabs[PLANNED_BUILD] = true;
   $("#buildListTab").focus();
 }
@@ -647,7 +705,7 @@ function setShopList(data, statusCode)
         aisleName = aisle;
         var aisleID = items[PLANNED_SHOP].getUniqueId(nameToId('s_aisle_', aisle));
         var aisleDiv = $('<div class="aisle" id="' + aisleID + '"><span class="aisleLabel">' + aisle + '</span></div>');
-        items[PLANNED_SHOP].addAisle(aisleID);
+        items[PLANNED_SHOP].addAisle(aisleID, aisleName);
         list.append(aisleDiv);
       }
       createPlannedItem(list, item['id'], item['name'], item['aisle'], item['count'], item['active'], item['done'], PLANNED_SHOP);

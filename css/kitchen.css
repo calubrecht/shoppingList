@@ -96,6 +96,8 @@ span.aisleLabel
     border-radius: 8px;
     padding: 3px 25px 3px 5px;
     background: silver;
+    display: inline-block;
+    margin: 2px;
 }
 
 .modal
@@ -112,7 +114,7 @@ span.aisleLabel
   background-color: rgba(0,0,0, 0.4);
 }
 
-.createItemDialog
+.createDialog
 {
   background-color: #fefefe;
   margin: 15% auto;
@@ -122,12 +124,12 @@ span.aisleLabel
   border-radius: 15px;
 }
 
-.createItemDialog .content
+.createDialog .content
 {
   margin-top: 40px;
 }
 
-.createItemDialog .content .secondColumn
+.createDialog .content .secondColumn
 {
   width:180px;
 }

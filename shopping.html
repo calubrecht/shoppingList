@@ -71,14 +71,25 @@
      </div>
   </div>
   <div id="modal" class="modal">
-    <div class="createItemDialog">
+    <div class="createDialog" id="createItemDialog">
       <span class="close">&times;</span>
       <div class='content'>
         <div class="firstColumn">New Item: </div><input class="secondColumn" type="text" name="itemName">
         <div class="break"></div>
       </div>
       <div>
-        <button id="addButton">Add</button>
+        <button id="addItemButton">Add</button>
+      </div>
+    </div>
+    <div class="createDialog" id="createAisleDialog">
+      <span class="close">&times;</span>
+      <div class='content'>
+        <div class="error" id="createAisleError"></div>
+        <div class="firstColumn">New Aisle: </div><input class="secondColumn" type="text" name="aisleName">
+        <div class="break"></div>
+      </div>
+      <div>
+        <button id="addAisleButton">Add</button>
       </div>
     </div>
   </div>
