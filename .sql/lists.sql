@@ -7,6 +7,7 @@ CREATE TABLE `lists` (
    `name` varchar(80) NOT NULL,
    `count` int(11) NOT NULL,
    `active` tinyint(1) NOT NULL,
+   `done` tinyint(1) NOT NULL DEFAULT '0',
    PRIMARY KEY (`userId`,`listType`,`orderKey`),
    UNIQUE KEY `UniqueId` (`userId`,`listType`,`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1

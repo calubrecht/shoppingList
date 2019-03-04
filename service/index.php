@@ -111,18 +111,35 @@ else if (!isLoggedIn())
 }
 else if ($request['action'] == "getWorkingList")
 {
-  $workingList = getWorkingList(getUser());
+  $workingList = getWorkingList(getUser(), "saved");
+  setResult($result, "isLoggedIn", isLoggedIn());
+  setResult($result, "workingList", $workingList);
+}
+else if ($request['action'] == "getShopList")
+{
+  $workingList = getWorkingList(getUser(), "shop");
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "workingList", $workingList);
 }
 else if ($request['action'] == "saveList")
 {
-  $res = setWorkingList(getUser(), $request['list']);
+  $res = setWorkingList(getUser(), "saved",$request['list']);
   if ($res)
   {
     setResult($result, "error", $res);
   }
   setResult($result, "isLoggedIn", isLoggedIn());
+}
+else if ($request['action'] == "setShopList")
+{
+  $res = setWorkingList(getUser(), "shop", $request['list']);
+  if ($res)
+  {
+    setResult($result, "error", $res);
+  }
+  $workingList = getWorkingList(getUser(), "shop");
+  setResult($result, "isLoggedIn", isLoggedIn());
+  setResult($result, "workingList", $workingList);
 }
 else
 {

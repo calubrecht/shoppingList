@@ -1,6 +1,6 @@
 <?php
 
-function getWorkingList($user)
+function getWorkingList($user, $type)
 {
   global $db;
   $db->beginTransaction();
@@ -8,24 +8,24 @@ function getWorkingList($user)
   $list = array();
   try
   {
-    $res = $db->queryAll("SELECT id, name, count, active FROM lists WHERE userId = ? ORDER by orderKey ASC", $id);
+    $res = $db->queryAll("SELECT id, name, count, active, done FROM lists WHERE userId = ? and listType = ? ORDER by orderKey ASC", array($id, $type));
     if ($res)
     {
       foreach ($res as $row)
       {
         array_push(
           $list,
-          array("id" => $row["id"], "name" => $row["name"], "count" => $row["count"], "aisle" => "Aisle 1", "active" => $row["active"] == 1));
+          array("id" => $row["id"], "name" => $row["name"], "count" => $row["count"], "aisle" => "Aisle 1", "active" => $row["active"] == 1, "done" => $row["done"] == 1));
       }
     }
     else
     {
       $db->commitTransaction();
       return  array(
-          array("id" => "Sushi", "name" => "Sushi", "count" => 1, "aisle" => "1", "active" => true),
-          array("id" => "Pumpkin", "name" => "Pumpkin", "count" => 2, "aisle" => "2", "active"=> false),
-          array("id" => "Flesh", "name" => "Flesh", "count" => 1, "aisle" => "1", "active"=>true),
-          array("id" => "Anaconda", "name" => "Anaconda", "count" => 1, "aisle" => "1", "active"=>true));
+          array("id" => "Sushi", "name" => "Sushi", "count" => 1, "aisle" => "1", "active" => true, "done"=> false),
+          array("id" => "Pumpkin", "name" => "Pumpkin", "count" => 2, "aisle" => "2", "active"=> false, "done"=> false),
+          array("id" => "Flesh", "name" => "Flesh", "count" => 1, "aisle" => "1", "active"=>true, "done"=> false),
+          array("id" => "Anaconda", "name" => "Anaconda", "count" => 1, "aisle" => "1", "active"=>true, "done"=> false));
     }
   }
   catch (Exception $e)
@@ -69,7 +69,7 @@ function safeID($id, $currentIds)
   return $idToUse;
 }
 
-function setWorkingList($user, $list)
+function setWorkingList($user, $type, $list)
 {
   global $db;
   $db->beginTransaction();
@@ -77,7 +77,7 @@ function setWorkingList($user, $list)
   $currentIds = array();
   try
   {
-    $db->execute("DELETE FROM lists WHERE userId = ? ", $userId); 
+    $db->execute("DELETE FROM lists WHERE userId = ? and listType=?", array($userId, $type)); 
     for ($i = 0; $i < count($list); $i++)
     {
        $item = $list[$i];
@@ -85,6 +85,7 @@ function setWorkingList($user, $list)
        $name = $item[1];
        $count = $item[2];
        $enabled = $item[3];
+       $done = $item[4];
        if (!validateName($name))
        {
          $db->rollbackTransaction();
@@ -97,7 +98,7 @@ function setWorkingList($user, $list)
        }
        $id = safeID($id, $currentIds);
        array_push($currentIds, $id);
-       $res = $db->execute('INSERT INTO lists (userId, listType, orderKey, id, aisle, name, count, active) VALUES (?, "saved", ?, ?, ?, ?, ?, ?)', array($userId, $i, $id, 'aisle 1', $name, $count, $enabled));
+       $res = $db->execute('INSERT INTO lists (userId, listType, orderKey, id, aisle, name, count, active, done) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', array($userId, $type, $i, $id, 'aisle 1', $name, $count, $enabled, $done));
        if (!$res)
        {
          $db->rollbackTransaction();

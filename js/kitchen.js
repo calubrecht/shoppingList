@@ -83,14 +83,14 @@ function nameToId(name, planType)
   return "id_" + name;
 }
 
-function createPlannedItem(parentElement, id, name, number, enabled, planType)
+function createPlannedItem(parentElement, id, name, number, enabled, done, planType)
 {
   if (!id)
   {
     id = nameToId(name, planType);
   }
   id = items[planType].getUniqueId(id);
-  items[planType].add(id, [id, name, number, enabled]);
+  items[planType].add(id, [id, name, number, enabled, done]);
   var isBuild = planType == PLANNED_BUILD;
   var box = document.createElement("div");
   box.className = "Item";
@@ -129,15 +129,16 @@ function createPlannedItem(parentElement, id, name, number, enabled, planType)
   parentElement.append(box);
   box.appendChild(nameSpan);
   box.appendChild(num.get(0));
+  var sliderIndex = isBuild ? 3 : 4;
   var sliderModel =
     {
       get: function ()
       {
-        return items[planType].get(id)[3];
+        return items[planType].get(id)[sliderIndex];
       },
       set: function (val)
       {
-        items[planType].get(id)[3] = val;
+        items[planType].get(id)[sliderIndex] = val;
         if (isBuild)
         {
           num.prop('disabled', !val);
@@ -176,7 +177,7 @@ function addItem(itemName)
   {
     return;
   }
-  itemId = createPlannedItem($("#sortableList"), null, itemName, 1, true, PLANNED_BUILD);
+  itemId = createPlannedItem($("#sortableList"), null, itemName, 1, true, false, PLANNED_BUILD);
   hideAddDlg();
   $("#" + itemId).find('.itemNumber').focus().select();
 }
@@ -184,7 +185,7 @@ function addItem(itemName)
 
 function pickTab(tabName, clearMessage=true)
 {
-  var previousTab = tabName;
+  var previousTab = activeTab;
   if (clearMessage)
   {
     clearMessages();
@@ -214,17 +215,18 @@ function pickTab(tabName, clearMessage=true)
   {
     if (!loadedTabs[PLANNED_BUILD])
     {
-      post({"action":"getWorkingList"}, setBuildList);
+      post({"action":"getShopList"}, setBuildList);
     }
   }
   if (tabName == "shop")
   {
-    if (loadedTabs[PLANNED_BUILD])
+    if (previousTab = "buildList") 
     {
-      post({"action":"getWorkingList"}, setShopList);
+      post({"action":"setShopList", "list":items[PLANNED_BUILD].toList()}, setShopList);
     }
     else
     {
+      post({"action":"getShopList"}, setShopList);
     }
   }
   activeTab = tabName;
@@ -514,7 +516,7 @@ function setBuildList(data, statusCode)
   for (var key in data['workingList'])
   {
     var item = data['workingList'][key];
-    createPlannedItem(sortableList, item['id'], item['name'], item['count'], item['active'], PLANNED_BUILD);
+    createPlannedItem(sortableList, item['id'], item['name'], item['count'], item['active'], item['done'], PLANNED_BUILD);
   }
 
   $("<div class='centeredItem'></div>").appendTo("#buildListBody").append($("<button title='Add item (Ctrl-A)'>+</button>").click( showAddDlg));
@@ -539,7 +541,7 @@ function setShopList(data, statusCode)
     var item = data['workingList'][key];
     if (item['active'])
     {
-      createPlannedItem(list, item['id'], item['name'], item['count'], item['active'], PLANNED_SHOP);
+      createPlannedItem(list, item['id'], item['name'], item['count'], item['active'], item['done'], PLANNED_SHOP);
     }
   }
 
