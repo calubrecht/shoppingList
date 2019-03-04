@@ -62,7 +62,7 @@ function item_collection()
      this.setOrder = function(order)
       {
         this.ordering = [];
-        var aisle = null;
+        var aisle = $(".firstAisle").text();
         for (var i = 0; i < order.length; i++)
         {
           var id = order[i];
@@ -571,7 +571,7 @@ function setBuildList(data, statusCode)
   $("#buildListBody").empty();
   var sortableList = $("<div id='sortableList'>").
     sortable(
-      {axis: 'y', items:'.Item, .aisle',stop: function (event, ui) {resolveSort()}, cancel: ".aisle"}).
+      {axis: 'y', items:'.Item, .aisle:not(.firstAisle)',stop: function (event, ui) {resolveSort()}, cancel: ".aisle"}).
     disableSelection().appendTo($("#buildListBody"));
   items[PLANNED_BUILD].clear();
   var aisleName = null;
@@ -581,9 +581,13 @@ function setBuildList(data, statusCode)
     var aisle = item['aisle'];
     if (aisle != aisleName)
     {
-      aisleName = aisle;
       var aisleID = items[PLANNED_BUILD].getUniqueId(nameToId('aisle_', aisle));
       var aisleDiv = $('<div class="aisle" id="' + aisleID + '">' + aisle + '</div>');
+      if (!aisleName)
+      {
+        aisleDiv.addClass('firstAisle');
+      }
+      aisleName = aisle;
       sortableList.append(aisleDiv);
       items[PLANNED_SHOP].addAisle(aisleID);
     }
