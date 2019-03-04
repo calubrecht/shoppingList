@@ -128,6 +128,7 @@ else if ($request['action'] == "saveList")
   {
     setResult($result, "error", $res);
   }
+  $res = setWorkingList(getUser(), "shop", $request['list']);
   setResult($result, "isLoggedIn", isLoggedIn());
 }
 else if ($request['action'] == "setShopList")
