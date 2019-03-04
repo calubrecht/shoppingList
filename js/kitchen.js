@@ -248,8 +248,24 @@ function hideAddDlg()
   $("#buildListTab").focus();
 }
 
+var lastAisle = null;
+function fillAisleSelect()
+{
+  var aisleSelect = $("#aisleSelect");
+  aisleSelect.empty();
+  for (name in items[PLANNED_BUILD].aisleNames)
+  {
+    aisleSelect.append($('<option value="' + name + '">' + name + '</option>'));
+  }
+  if (lastAisle && lastAisle in items[PLANNED_BUILD].aisleNames)
+  {
+    aisleSelect.val(lastAisle);
+  }
+}
+
 function showAddDlg()
 {
+  fillAisleSelect();
   $("#modal").show();
   $('#createItemDialog').show();
   $('#createAisleDialog').hide();
@@ -264,16 +280,18 @@ function showAddAisleDlg()
   $("#modal").find("[name='aisleName']").val('').focus();
 }
 
-function addItem(itemName)
+function addItem(itemName, aisleName)
 {
   if (!itemName)
   {
     return;
   }
-  var aisleId = items[PLANNED_BUILD].aisleNames['Aisle 1'];
-  itemId = createPlannedItem($("#" + aisleId), null, itemName, 'Aisle 1',1, true, false, PLANNED_BUILD);
+  lastAisle = aisleName;
+  var aisleId = items[PLANNED_BUILD].aisleNames[aisleName];
+  itemId = createPlannedItem($("#" + aisleId), null, itemName, aisleName,1, true, false, PLANNED_BUILD);
   hideAddDlg();
   $("#" + itemId).find('.itemNumber').focus().select();
+  resolveSort();
 }
 
 function addAisle(aisleName)
@@ -383,7 +401,11 @@ function init()
       }
   });
   $("#modal").find('.close').click(function() {hideAddDlg();});
-  $("#addItemButton").click(function() {addItem($("#modal").find("[name='itemName']").val()); });
+  $("#addItemButton").click(function()
+    {
+      addItem(
+        $("#modal").find("[name='itemName']").val(),
+        $("#aisleSelect").val()); });
   $("#addAisleButton").click(function() {addAisle($("#modal").find("[name='aisleName']").val()); });
   $("#createItemDialog").keypress(function (e) {
       if (e.which == 13) {
