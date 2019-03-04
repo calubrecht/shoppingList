@@ -59,21 +59,16 @@ function item_collection()
         this.ordering = [];
         this.aisles = [];
       };
-     this.setOrder = function(order)
+     this.setOrder = function(aisleOrder, aisles)
       {
         this.ordering = [];
-        var aisle = $(".firstAisle").text();
-        for (var i = 0; i < order.length; i++)
+        for (i in aisleOrder)
         {
-          var id = order[i];
-          var el = $("#" + id);
-          if (el.hasClass('aisle'))
+          var aisleName = aisleOrder[i];
+          for (j in aisles[aisleName])
           {
-            aisle =  el.text();
-          }
-          if (el.hasClass('Item'))
-          {
-            this.collection[id].aisle = aisle;
+            var id = aisles[aisleName][j];
+            this.collection[id].aisle = aisleName;
             this.ordering.push(id);
           }
         }
@@ -559,7 +554,18 @@ function forgotPassword()
 
 function resolveSort()
 {
-  items[PLANNED_BUILD].setOrder($("#sortableList").sortable("toArray"));
+  var aisleIdOrder = $('#aisleSorter').sortable("toArray");
+  var aisles = {};
+  var aisleOrder = [];
+  for (i in aisleIdOrder)
+  {
+    var aisleId = aisleIdOrder[i];
+    var aisle = $("#" + aisleId);
+    var aisleName = aisle.find('.aisleLabel').text();
+    aisleOrder.push(aisleName);
+    aisles[aisleName] = aisle.sortable("toArray"); 
+  }
+  items[PLANNED_BUILD].setOrder(aisleOrder, aisles);
 }
 
 function setBuildList(data, statusCode)
@@ -569,12 +575,14 @@ function setBuildList(data, statusCode)
     return;
   }
   $("#buildListBody").empty();
-  var sortableList = $("<div id='sortableList'>").
+  var aisleSorter = $("<div id='aisleSorter'>").
     sortable(
-      {axis: 'y', items:'.Item, .aisle:not(.firstAisle)',stop: function (event, ui) {resolveSort()}, cancel: ".aisle"}).
+      {axis: 'y', handle:".aisleLabel",items:'.aisle',stop: function (event, ui) {resolveSort();}}).
     disableSelection().appendTo($("#buildListBody"));
   items[PLANNED_BUILD].clear();
   var aisleName = null;
+  var aisleDiv = null;
+  var sortableAisles = [];
   for (var key in data['workingList'])
   {
     var item = data['workingList'][key];
@@ -582,16 +590,31 @@ function setBuildList(data, statusCode)
     if (aisle != aisleName)
     {
       var aisleID = items[PLANNED_BUILD].getUniqueId(nameToId('aisle_', aisle));
-      var aisleDiv = $('<div class="aisle" id="' + aisleID + '"><span class="aisleLabel">' + aisle + '</span></div>');
-      if (!aisleName)
-      {
-        aisleDiv.addClass('firstAisle');
-      }
+      aisleDiv = $('<div class="aisle" id="' + aisleID + '"><span class="aisleLabel">' + aisle + '</span></div>');
+      aisleDiv.sortable(
+      {axis: 'y', items:'.Item',stop: function (event, ui) {resolveSort();}});
       aisleName = aisle;
-      sortableList.append(aisleDiv);
+      aisleSorter.append(aisleDiv);
       items[PLANNED_SHOP].addAisle(aisleID);
+      sortableAisles.push(aisleDiv);
     }
-    createPlannedItem(sortableList, item['id'], item['name'], item['aisle'], item['count'], item['active'], item['done'], PLANNED_BUILD);
+    createPlannedItem(aisleDiv, item['id'], item['name'], item['aisle'], item['count'], item['active'], item['done'], PLANNED_BUILD);
+  }
+
+  for (var firstIdx = 0; firstIdx < sortableAisles.length; firstIdx++)
+  {
+    var otherAisles = []
+    for (var secondIdx = 0; secondIdx < sortableAisles.length; secondIdx++)
+    {
+      if (firstIdx != secondIdx)
+      {
+        otherAisles.push('#' + sortableAisles[secondIdx].attr('id')); 
+      }
+    }
+    if (otherAisles.length > 0)
+    {
+      sortableAisles[firstIdx].sortable("option", "connectWith", otherAisles.join());
+    }
   }
 
   $("<div class='centeredItem'></div>").appendTo("#buildListBody").append($("<button title='Add item (Ctrl-A)'>+</button>").click( showAddDlg));
