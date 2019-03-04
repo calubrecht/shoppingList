@@ -238,7 +238,7 @@ function createAisle(aisleID, aisle)
 {
   aisleDiv = $('<div class="aisle" id="' + aisleID + '"><span class="aisleLabel">' + aisle + '</span></div>');
   aisleDiv.sortable(
-  {axis: 'y', items:'.Item',stop: function (event, ui) {resolveSort();}});
+  {axis: 'y', items:'.Item', handle:'.itemName', stop: function (event, ui) {resolveSort();}});
   aisleName = aisle;
   $("#aisleSorter").append(aisleDiv);
   items[PLANNED_BUILD].addAisle(aisleID, aisleName);
