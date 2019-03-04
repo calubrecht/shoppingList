@@ -4,6 +4,21 @@ var activeTab = null;
 
 var loadedTabs = {PLANNED_BUILD: false, PLANNED_BUILD:false};
 
+function item_type(id, name, aisle, count, enabled, done)
+{
+  this.id = id;
+  this.name = name;
+  this.aisle = aisle;
+  this.count = count;
+  this.enabled = enabled;
+  this.done = done;
+
+  this.toList = function()
+  {
+    return [this.id, this.name, this.aisle, this.count, this.enabled, this.done];
+  }
+}
+
 function item_collection()
   {
      this.add = function(name, value)
@@ -33,7 +48,8 @@ function item_collection()
         var out = [];
         for (var i = 0; i < this.ordering.length; i++)
         {
-          out.push(this.collection[this.ordering[i]]);
+          var item = this.collection[this.ordering[i]];
+          out.push(item.toList());
         }
         return out;
       };
@@ -41,11 +57,31 @@ function item_collection()
       {
         this.collection = {};
         this.ordering = [];
+        this.aisles = [];
       };
      this.setOrder = function(order)
       {
-        this.ordering = order;
+        this.ordering = [];
+        var aisle = null;
+        for (var i = 0; i < order.length; i++)
+        {
+          var id = order[i];
+          var el = $("#" + id);
+          if (el.hasClass('aisle'))
+          {
+            aisle =  el.text();
+          }
+          if (el.hasClass('Item'))
+          {
+            this.collection[id].aisle = aisle;
+            this.ordering.push(id);
+          }
+        }
       };
+     this.addAisle = function(aisleId)
+     {
+       this.aisles .push(aisleId);
+     }
      this.getUniqueId = function(desiredId)
      {
        var id = desiredId;
@@ -55,9 +91,15 @@ function item_collection()
          id = desiredId + count;
          count++;
        }
+       while (id in this.aisles)
+       {
+         id = desiredId + count;
+         count++;
+       }
        return id;
      }
      this.collection = {};
+     this.aisles = [];
      this.ordering = [];
 
   };
@@ -71,27 +113,31 @@ function validateParsePosInt(val)
   return $.isNumeric(val) &&  (i == f) && i >= 0;
 }
 
-function nameToId(name, planType)
+function nameToId(prefix, name, planType)
 {
   name = name.replace(/[^a-zA-Z0-9]+/g,'');
   name = $.trim(name);
   name = name.replace(/^[0-9]+/,'');
   if (!name)
   {
-    return "id_";
+    return prefix;
   }
-  return "id_" + name;
+  return prefix  + name;
 }
 
-function createPlannedItem(parentElement, id, name, number, enabled, done, planType)
+function createPlannedItem(parentElement, id, name, aisle, number, enabled, done, planType)
 {
   if (!id)
   {
-    id = nameToId(name, planType);
+    id = nameToId('id_', name, planType);
+  }
+  var isBuild = planType == PLANNED_BUILD;
+  if (!isBuild)
+  {
+    id = 's_' + id;
   }
   id = items[planType].getUniqueId(id);
-  items[planType].add(id, [id, name, number, enabled, done]);
-  var isBuild = planType == PLANNED_BUILD;
+  items[planType].add(id, new item_type(id, name, aisle, number, enabled, done));
   var box = document.createElement("div");
   box.className = "Item";
   box.id = id;
@@ -113,11 +159,11 @@ function createPlannedItem(parentElement, id, name, number, enabled, done, planT
         var newValue = event.target.value;
         if (!validateParsePosInt(newValue))
         {
-          event.target.value = items[planType].get(id)[2];
+          event.target.value = items[planType].get(id).count;
           event.target.focus();
           return false;
         }
-        items[planType].get(id)[2] = event.target.value;
+        items[planType].get(id).count = event.target.value;
       });
   }
   else
@@ -129,7 +175,7 @@ function createPlannedItem(parentElement, id, name, number, enabled, done, planT
   parentElement.append(box);
   box.appendChild(nameSpan);
   box.appendChild(num.get(0));
-  var sliderIndex = isBuild ? 3 : 4;
+  var sliderIndex = isBuild ? 'enabled' : 'done';
   var sliderState = isBuild ? enabled: !done;
   var sliderModel =
     {
@@ -148,7 +194,7 @@ function createPlannedItem(parentElement, id, name, number, enabled, done, planT
         {
           if (loadedTabs[PLANNED_SHOP])
           {
-            saveDoneState(id, !val);
+            saveDoneState(id.substring(2), !val);
           }
         }
       }
@@ -185,7 +231,7 @@ function addItem(itemName)
   {
     return;
   }
-  itemId = createPlannedItem($("#sortableList"), null, itemName, 1, true, false, PLANNED_BUILD);
+  itemId = createPlannedItem($("#sortableList"), null, itemName, 'Aisle 1',1, true, false, PLANNED_BUILD);
   hideAddDlg();
   $("#" + itemId).find('.itemNumber').focus().select();
 }
@@ -525,13 +571,23 @@ function setBuildList(data, statusCode)
   $("#buildListBody").empty();
   var sortableList = $("<div id='sortableList'>").
     sortable(
-      {axis: 'y', stop: function (event, ui) {resolveSort()}}).
+      {axis: 'y', items:'.Item, .aisle',stop: function (event, ui) {resolveSort()}, cancel: ".aisle"}).
     disableSelection().appendTo($("#buildListBody"));
   items[PLANNED_BUILD].clear();
+  var aisleName = null;
   for (var key in data['workingList'])
   {
     var item = data['workingList'][key];
-    createPlannedItem(sortableList, item['id'], item['name'], item['count'], item['active'], item['done'], PLANNED_BUILD);
+    var aisle = item['aisle'];
+    if (aisle != aisleName)
+    {
+      aisleName = aisle;
+      var aisleID = items[PLANNED_BUILD].getUniqueId(nameToId('aisle_', aisle));
+      var aisleDiv = $('<div class="aisle" id="' + aisleID + '">' + aisle + '</div>');
+      sortableList.append(aisleDiv);
+      items[PLANNED_SHOP].addAisle(aisleID);
+    }
+    createPlannedItem(sortableList, item['id'], item['name'], item['aisle'], item['count'], item['active'], item['done'], PLANNED_BUILD);
   }
 
   $("<div class='centeredItem'></div>").appendTo("#buildListBody").append($("<button title='Add item (Ctrl-A)'>+</button>").click( showAddDlg));
@@ -552,12 +608,22 @@ function setShopList(data, statusCode)
   $("#shopListBody").empty();
   var list = $("<div>").appendTo($("#shopListBody"));
   items[PLANNED_SHOP].clear();
+  var aisleName = null;
   for (var key in data['workingList'])
   {
     var item = data['workingList'][key];
     if (item['active'])
     {
-      createPlannedItem(list, item['id'], item['name'], item['count'], item['active'], item['done'], PLANNED_SHOP);
+      var aisle = item['aisle'];
+      if (aisle != aisleName)
+      {
+        aisleName = aisle;
+        var aisleID = items[PLANNED_SHOP].getUniqueId(nameToId('s_aisle_', aisle));
+        var aisleDiv = $('<div class="aisle" id="' + aisleID + '">' + aisle + '</div>');
+        items[PLANNED_SHOP].addAisle(aisleID);
+        list.append(aisleDiv);
+      }
+      createPlannedItem(list, item['id'], item['name'], item['aisle'], item['count'], item['active'], item['done'], PLANNED_SHOP);
     }
   }
 

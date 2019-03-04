@@ -8,14 +8,14 @@ function getWorkingList($user, $type)
   $list = array();
   try
   {
-    $res = $db->queryAll("SELECT id, name, count, active, done FROM lists WHERE userId = ? and listType = ? ORDER by orderKey ASC", array($id, $type));
+    $res = $db->queryAll("SELECT id, name, aisle, count, active, done FROM lists WHERE userId = ? and listType = ? ORDER by orderKey ASC", array($id, $type));
     if ($res)
     {
       foreach ($res as $row)
       {
         array_push(
           $list,
-          array("id" => $row["id"], "name" => $row["name"], "count" => $row["count"], "aisle" => "Aisle 1", "active" => $row["active"] == 1, "done" => $row["done"] == 1));
+          array("id" => $row["id"], "name" => $row["name"], "count" => $row["count"], "aisle" => $row['aisle'], "active" => $row["active"] == 1, "done" => $row["done"] == 1));
       }
     }
     else
@@ -83,9 +83,10 @@ function setWorkingList($user, $type, $list)
        $item = $list[$i];
        $id = $item[0];
        $name = $item[1];
-       $count = $item[2];
-       $enabled = $item[3];
-       $done = $item[4];
+       $aisle = $item[2];
+       $count = $item[3];
+       $enabled = $item[4];
+       $done = $item[5];
        if (!validateName($name))
        {
          $db->rollbackTransaction();
@@ -98,7 +99,7 @@ function setWorkingList($user, $type, $list)
        }
        $id = safeID($id, $currentIds);
        array_push($currentIds, $id);
-       $res = $db->execute('INSERT INTO lists (userId, listType, orderKey, id, aisle, name, count, active, done) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', array($userId, $type, $i, $id, 'aisle 1', $name, $count, $enabled, $done));
+       $res = $db->execute('INSERT INTO lists (userId, listType, orderKey, id, aisle, name, count, active, done) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', array($userId, $type, $i, $id, $aisle, $name, $count, $enabled, $done));
        if (!$res)
        {
          $db->rollbackTransaction();
