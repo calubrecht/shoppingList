@@ -21,9 +21,13 @@ function getWorkingList($user, $type, &$msg)
     else
     {
       $db->commitTransaction();
-      if (type == 'shop')
+      if ($type == 'shop')
       {
         return getWorkingList($user, "saved", $msg);
+      }
+      if ($type == 'menu')
+      {
+        return  array();
       }
       error_log("Sending default default");
       $msg = "Welcome " . getUser() . ". You have no saved list. Here are some things to get you started.";

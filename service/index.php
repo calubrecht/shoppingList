@@ -124,9 +124,19 @@ else if ($request['action'] == "getShopList")
 {
   $msg = '';
   $workingList = getWorkingList(getUser(), "shop", $msg);
-  error_log("msg = " . $msg);
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "workingList", $workingList);
+  if ($msg)
+  {
+    setResult($result, "msg", $msg);
+  }
+}
+else if ($request['action'] == "getMenu")
+{
+  $msg = '';
+  $workingList = getWorkingList(getUser(), "menu", $msg);
+  setResult($result, "isLoggedIn", isLoggedIn());
+  setResult($result, "menu", $workingList);
   if ($msg)
   {
     setResult($result, "msg", $msg);
@@ -168,6 +178,17 @@ else if ($request['action'] == "resetDoneState")
   $workingList = getWorkingList(getUser(), "shop", $msg);
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "workingList", $workingList);
+}
+else if ($request['action'] == "setMenu")
+{
+  $res = setWorkingList(getUser(), "menu", $request['list']);
+  if ($res)
+  {
+    setResult($result, "error", $res);
+  }
+  $msg = null;
+  setResult($result, "isLoggedIn", isLoggedIn());
+  setResult($result, "keepTab", true);
 }
 else
 {

@@ -70,6 +70,7 @@ div.tabBody.narrow {width:500px}
 
 #buildListBody {margin-left:auto; margin-right:auto; width:400px; margin-bottom:20px}
 #shopListBody {margin-left:auto; margin-right:auto; width:400px; margin-bottom:20px}
+#menuBody {margin-left:auto; margin-right:auto; width:400px; margin-bottom:20px}
 
 #buildListTab:focus {outline:none;}
 
@@ -89,6 +90,18 @@ div.buttonPane button
 }
 
 span.aisleLabel
+{
+    border-width: 3px;
+    border-color: darkgrey;
+    border-style: outset;
+    border-radius: 8px;
+    padding: 3px 25px 3px 5px;
+    background: silver;
+    display: inline-block;
+    margin: 2px;
+}
+
+span.dayLabel
 {
     border-width: 3px;
     border-color: darkgrey;

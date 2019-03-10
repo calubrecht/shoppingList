@@ -26,11 +26,12 @@
   <h1>Your Shopping List</h1>
   <div id="body">
      <div class="navBar">
-       <span class="tab active" id="login" onclick="pickTab('login')">Login</span>
-       <span class="tab" id="password" onclick="pickTab('password')">Forgot Password</span>
-       <span class="tab" id="register" onclick="pickTab('register')">Register</span>
-       <span class="tab" id="buildList" onclick="pickTab('buildList')">Build List</span>
-       <span class="tab" id="shop" onclick="pickTab('shop')">Shop</span>
+       <span class="tab active" id="login" onclick="pickTab('login', true)">Login</span>
+       <span class="tab" id="password" onclick="pickTab('password', true)">Forgot Password</span>
+       <span class="tab" id="register" onclick="pickTab('register', true)">Register</span>
+       <span class="tab" id="buildList" onclick="pickTab('buildList', true)">Build List</span>
+       <span class="tab" id="shop" onclick="pickTab('shop', true)">Shop</span>
+       <span class="tab" id="menu" onclick="pickTab('menu', true)">Menu</span>
        <span class="tab" id="logout" onclick="logout()">Logout</span>
      </div>
      <div id="loginTab" class="tabBody narrow">
@@ -69,6 +70,11 @@
         <div class="msg" id="shopListMsg"></div>
         <div id="shopListBody"></div>
      </div>
+     <div id="menuTab" class="tabBody">
+        <div class="error" id="menuError"></div>
+        <div class="msg" id="menuMsg"></div>
+        <div id="menuBody"></div>
+     </div>
   </div>
   <div id="modal" class="modal">
     <div class="createDialog modalDialog" id="createItemDialog">
@@ -93,6 +99,26 @@
       </div>
       <div>
         <button id="addAisleButton">Add</button>
+      </div>
+    </div>
+    <div class="createDialog modalDialog" id="createMenuItemDialog">
+      <span class="close">&times;</span>
+      <div class='content'>
+        <div class="firstColumn">New Item: </div><input class="secondColumn" type="text" name="menuItemName">
+        <div class="firstColumn">Day: </div>
+        <select id='weekdaySelect' class="secondColumn">>
+          <option value="Sunday">Sunday</option>
+          <option value="Monday">Monday</option>
+          <option value="Tuesday">Tuesday</option>
+          <option value="Wednesday">Wednesday</option>
+          <option value="Thursday">Thursday</option>
+          <option value="Friday">Friday</option>
+          <option value="Saturday">Saturday</option>
+        </select>
+        <div class="break"></div>
+      </div>
+      <div>
+        <button id="addMenuItemButton">Add</button>
       </div>
     </div>
     <div class='modalDialog' id='printView' tabindex=0>

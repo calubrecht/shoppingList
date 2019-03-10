@@ -1,8 +1,10 @@
 const PLANNED_BUILD = "build";
 const PLANNED_SHOP = "shop";
+const PLANNED_MENU = "menu";
+const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 var activeTab = null;
 
-var loadedTabs = {PLANNED_BUILD: false, PLANNED_BUILD:false};
+var loadedTabs = {build: false, shop:false};
 
 function item_type(id, name, aisle, count, enabled, done)
 {
@@ -53,6 +55,10 @@ function item_collection()
         }
         return out;
       };
+     this.printLine = function (aisle, item)
+     {
+       aisle.append($('<div class="printItem">' + item.count + " " + item.name + '</div>'));
+     }
      this.toPrintableView = function(parentEl)
      { 
        for (aisleIndex in this.aisleOrder)
@@ -66,7 +72,7 @@ function item_collection()
            var item = this.collection[itemId];
            if (item.aisle == aisleName)
            {
-             aisle.append($('<div class="printItem">' + item.count + " " + item.name + '</div>'));
+             this.printLine(aisle, item);
            }
          }
 
@@ -145,7 +151,17 @@ function item_collection()
 
   };
 
-var items = {[PLANNED_BUILD]: new item_collection(), [PLANNED_SHOP] : new item_collection()};
+function menuitem_collection()
+  {
+     item_collection.call(this);
+     this.aisleOrder = DAYS;
+     this.printLine = function (aisle, item)
+     {
+       aisle.append($('<div class="printItem">' +item.name + '</div>'));
+     };
+  };
+
+var items = {[PLANNED_BUILD]: new item_collection(), [PLANNED_SHOP]:  new item_collection(), [PLANNED_MENU]: new menuitem_collection()};
 
 function validateParsePosInt(val)
 {
@@ -254,6 +270,32 @@ function createPlannedItem(parentElement, id, name, aisle, number, enabled, done
   return id;
 }
 
+function createMenuItem(parentElement, id, name, weekDay, planType)
+{
+  if (!id)
+  {
+    id = nameToId('menuItem_', name, planType);
+  }
+  id = items[planType].getUniqueId(id);
+  items[planType].add(id, new item_type(id, name, weekDay, 1, true, true));
+  var box = document.createElement("div");
+  box.className = "Item";
+  box.id = id;
+  var nameSpan = document.createElement("span");
+  nameSpan.className = "itemName";
+  nameSpan.innerText= name;
+  var num;
+  parentElement.append(box);
+  box.appendChild(nameSpan);
+  $("<span>X</span>").addClass("deleteItem").click(
+    function()
+    {
+      items[planType].remove(id);
+      box.remove();
+    }).appendTo(box);
+  return id;
+}
+
 var editingName= null;
 
 function createAisle(aisleID, aisle, collection, editable)
@@ -343,6 +385,12 @@ function hideAddDlg()
   $("#buildListTab").focus();
 }
 
+function hideAddMenuItemDlg()
+{
+  $("#modal").hide();
+  $("#menuTab").focus();
+}
+
 var lastAisle = null;
 function fillAisleSelect()
 {
@@ -373,6 +421,13 @@ function showAddAisleDlg()
   $('.modalDialog').hide();
   $('#createAisleDialog').show();
   $("#modal").find("[name='aisleName']").val('').focus();
+}
+function showAddMenuItemDlg()
+{
+  $("#modal").show();
+  $('.modalDialog').hide();
+  $('#createMenuItemDialog').show();
+  $("#modal").find("[name='menuItemName']").val('').focus();
 }
 
 function showPrintableView(item_collection)
@@ -418,8 +473,19 @@ function addAisle(aisleName)
   hideAddDlg();
 }
 
+function addMenuItem(itemName, weekDay)
+{
+  if (!itemName)
+  {
+    return;
+  }
+  itemId = createMenuItem($("#day_" + weekDay), null, itemName, weekDay, PLANNED_MENU);
+  hideAddMenuItemDlg();
+  resolveSortMenu();
+}
 
-function pickTab(tabName, clearMessage=true)
+
+function pickTab(tabName, clearMessage)
 {
   var previousTab = activeTab;
   if (clearMessage)
@@ -462,6 +528,10 @@ function pickTab(tabName, clearMessage=true)
       post({"action":"getShopList"}, setShopList);
     }
   }
+  if (tabName == 'menu')
+  {
+    post({"action":"getMenu"}, setMenu);
+  }
   activeTab = tabName;
 }
 
@@ -471,9 +541,8 @@ function post(data, callback)
   $.post('/service/', jsonData, callback, "json");
 }
 
-function init()
+function setListeners()
 {
-  pickTab('invalid'); // Hide all tabs, initially.
   $(".loginForm").keypress(function (e) {
       if (e.which == 13) {
             $('#loginSubmit').click();
@@ -508,6 +577,7 @@ function init()
       }
   });
   $("#modal").find('.close').click(function() {hideAddDlg();});
+  $("#createMenuItemDialog").find('.close').click(function() {hideAddMenuItemDlg();});
   $("#addItemButton").click(function()
     {
       addItem(
@@ -526,6 +596,12 @@ function init()
             return false;
           }
   });
+  $("#createMenuItemDialog").keypress(function (e) {
+      if (e.which == 13) {
+            $('#addMenuItemButton').click();
+            return false;
+          }
+  });
   $("#modal").keydown(function (e)
     {
       if (e.key === "Escape")
@@ -533,7 +609,13 @@ function init()
       hideAddDlg();
     }
     });
-  post({"action":"checkLogin"}, handleCheckLogin);
+  $("#createMenuItemDialog").keydown(function (e)
+    {
+      if (e.key === "Escape")
+    {
+      hideAddMenuItemDlg();
+    }
+    });
   $("#printView").on('keydown', function (e) {
       if (e.ctrlKey && e.key == 'a')
       {
@@ -541,6 +623,26 @@ function init()
         return false;
       }
   });
+  $("#menuTab").attr('tabindex',0);
+  $("#menuTab").on('keydown', function (e) {
+      if (e.ctrlKey && e.key == 'a')
+      {
+        showAddMenuItemDlg();
+        return false;
+      }
+  });
+  $("#addMenuItemButton").click(function()
+    {
+      addMenuItem(
+        $("#modal").find("[name='menuItemName']").val(),
+        $("#weekdaySelect").val()); });
+}
+
+function init()
+{
+  pickTab('invalid', true); // Hide all tabs, initially.
+  post({"action":"checkLogin"}, handleCheckLogin);
+  setListeners();
 }
 
 function selectText(node)
@@ -578,8 +680,15 @@ function logout()
 
 function cleanup()
 {
-  loadedTabs = {PLANNED_BUILD: false, PLANNED_BUILD:false};
-  items = {[PLANNED_BUILD]: new item_collection(), [PLANNED_SHOP] : new item_collection()};
+  loadedTabs = {build: false, shop:false};
+  items = {[PLANNED_BUILD]: new item_collection(), [PLANNED_SHOP]:  new item_collection(), [PLANNED_MENU]: new menuitem_collection()};
+}
+
+function clearMenu()
+{
+  items[PLANNED_MENU] = new menuitem_collection();
+  $("#menuBody").find('.Item').remove();
+  post({"action":"setMenu", "list":items[PLANNED_MENU].toList()}, handleCheckLogin);
 }
 
 function register()
@@ -748,13 +857,13 @@ function clearMessages()
 function setNotLoggedIn()
 {
   showTabs(["login", "register"]);
-  hideTabs(["buildList", "shop", "logout", "password"]);
+  hideTabs(["buildList", "shop", "logout", "password", "menu"]);
   pickTab("login", false);
 }
 
 function setLoggedIn()
 {
-  showTabs(["buildList", "shop", "logout"]);
+  showTabs(["buildList", "shop", "menu","logout"]);
   hideTabs(["login", "password", "register"]);
   pickTab("buildList", false);
 }
@@ -780,7 +889,7 @@ function forgotPassword()
   showTabs(["password"]);
   var userName=$( "input[name='username']" ).val();
   $( "input[name='p_username']" ).val(userName);
-  pickTab("password");
+  pickTab("password", true);
 }
 
 function resolveSort()
@@ -872,4 +981,71 @@ function setShopList(data, statusCode)
       post({"action":"resetDoneState"}, setShopList);}).appendTo(buttonPane);
   $("<button>Printable View</button>").click( function() { showPrintableView(items[PLANNED_SHOP]); }).appendTo(buttonPane);
   loadedTabs[PLANNED_SHOP] = true;
+}
+
+function createDayDiv(dayName)
+{
+  var dayDiv = $('<div class="weekDay" id="day_' + dayName + '"><span class="dayLabel">' + dayName + '</span></div>'); 
+  dayDiv.sortable(
+    {axis: 'y', items:'.Item', handle:'.itemName', stop: function(event, ui) {resolveSortMenu();}});
+
+  return dayDiv;
+}
+function linkMenuDays()
+{
+  var sortableWeekDays = [];
+  $("#menuBody").find(".weekDay").each(function () {sortableWeekDays.push($(this));});
+  for (var firstIdx = 0; firstIdx < sortableWeekDays.length; firstIdx++)
+  {
+    var otherWeekDays = []
+    for (var secondIdx = 0; secondIdx < sortableWeekDays.length; secondIdx++)
+    {
+      if (firstIdx != secondIdx)
+      {
+        otherWeekDays.push('#' + sortableWeekDays[secondIdx].attr('id')); 
+      }
+    }
+    if (otherWeekDays.length > 0)
+    {
+      sortableWeekDays[firstIdx].sortable("option", "connectWith", otherWeekDays.join());
+    }
+  }
+}
+
+function resolveSortMenu()
+{
+  var menus = [];
+  for (var i = 0; i < DAYS.length; i++)
+  {
+    var dayName = DAYS[i];
+    var dayId = "day_" + dayName;
+    var day = $("#" + dayId);
+    menus[dayName] = day.sortable("toArray"); 
+  }
+  items[PLANNED_MENU].setOrder(DAYS, menus);
+   post({"action":"setMenu", "list":items[PLANNED_MENU].toList()}, handleCheckLogin);
+}
+
+function setMenu(data, statusCode)
+{
+  if (!checkLoggedIn(data))
+  {
+    return;
+  }
+  $("#menuBody").empty();
+  for (var i = 0; i < DAYS.length; i++)
+  {
+    $("#menuBody").append(createDayDiv(DAYS[i]));
+  }
+  linkMenuDays();
+  for (var j = 0; j < data['menu'].length; j++)
+  {
+    var item = data['menu'][j];
+    createMenuItem($("#day_"+item['aisle']), item['id'], item['name'], item['aisle'], PLANNED_MENU);
+  }
+  $("<div class='centeredItem'></div>").appendTo("#menuBody").append($("<button title='Add item (Ctrl-A)'>+</button>").click( showAddMenuItemDlg));
+  var buttonPane = $("<div></div>").addClass("buttonPane").appendTo("#menuBody");
+  $("<button>Clear Menu</button>").click(clearMenu).appendTo(buttonPane); 
+  $("<button>Printable View</button>").click( function() { showPrintableView(items[PLANNED_MENU]); }).appendTo(buttonPane);
+  $("#menuTab").focus();
 }
