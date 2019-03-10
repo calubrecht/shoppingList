@@ -515,7 +515,10 @@ function pickTab(tabName, clearMessage)
   });
   if (tabName == "buildList")
   {
-     post({"action":"getShopList"}, setBuildList);
+     if (previousTab == "invalid" || previousTab == "shop") 
+     {
+       post({"action":"getShopList"}, setBuildList);
+     }
   }
   if (tabName == "shop")
   {
