@@ -198,9 +198,15 @@ span.dayLabel
   {
     width:100%;
   }
-  tabBody
+  div.tabBody
   {
+    width:335px;
     overflow:hidden;
+  }
+
+  .Item
+  {
+    width:314px;
   }
   
   div.tabBody.narrow {width:90%}
@@ -220,4 +226,5 @@ span.dayLabel
     padding-right: 10px;
     border-radius: 15px;
   }
+
 }
