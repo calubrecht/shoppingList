@@ -292,6 +292,7 @@ function createMenuItem(parentElement, id, name, weekDay, planType)
     {
       items[planType].remove(id);
       box.remove();
+      resolveSortMenu();
     }).appendTo(box);
   return id;
 }
