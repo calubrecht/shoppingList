@@ -516,7 +516,7 @@ function pickTab(tabName, clearMessage)
   });
   if (tabName == "buildList")
   {
-     if (previousTab == "invalid" || previousTab == "shop") 
+     if (previousTab == "invalid" || previousTab == "shop" || previousTab == "login") 
      {
        post({"action":"getShopList"}, setBuildList);
      }
@@ -686,6 +686,9 @@ function cleanup()
 {
   loadedTabs = {build: false, shop:false};
   items = {[PLANNED_BUILD]: new item_collection(), [PLANNED_SHOP]:  new item_collection(), [PLANNED_MENU]: new menuitem_collection()};
+  $("#buildListBody").empty();
+  $("#shopListBody").empty();
+  $("#menuBody").find('.Item').remove();
 }
 
 function clearMenu()
