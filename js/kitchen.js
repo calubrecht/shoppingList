@@ -442,7 +442,7 @@ function showPrintableView(item_collection)
   $('#printView').focus();
 }
 
-function addItem(itemName, aisleName)
+function addItem(itemName, aisleName, close)
 {
   if (!itemName)
   {
@@ -451,12 +451,15 @@ function addItem(itemName, aisleName)
   lastAisle = aisleName;
   var aisleId = items[PLANNED_BUILD].aisleNames[aisleName];
   itemId = createPlannedItem($("#" + aisleId), null, itemName, aisleName,1, true, false, PLANNED_BUILD);
-  hideAddDlg();
-  $("#" + itemId).find('.itemNumber').focus().select();
-  resolveSort();
+  if (close)
+  {
+    hideAddDlg();
+    $("#" + itemId).find('.itemNumber').focus().select();
+    resolveSort();
+  }
 }
 
-function addAisle(aisleName)
+function addAisle(aisleName, close)
 {
   aisleName = aisleName.trim();
   if (!aisleName)
@@ -471,18 +474,24 @@ function addAisle(aisleName)
   var aisleID = items[PLANNED_BUILD].getUniqueId(nameToId('aisle_', aisleName));
   createAisle(aisleID, aisleName, items[PLANNED_BUILD], true);
   linkAisles();
-  hideAddDlg();
+  if (close)
+  {
+    hideAddDlg();
+  }
 }
 
-function addMenuItem(itemName, weekDay)
+function addMenuItem(itemName, weekDay, close)
 {
   if (!itemName)
   {
     return;
   }
   itemId = createMenuItem($("#day_" + weekDay), null, itemName, weekDay, PLANNED_MENU);
-  hideAddMenuItemDlg();
-  resolveSortMenu();
+  if (close)
+  {
+    hideAddMenuItemDlg();
+    resolveSortMenu();
+  }
 }
 
 
@@ -586,8 +595,19 @@ function setListeners()
     {
       addItem(
         $("#modal").find("[name='itemName']").val(),
-        $("#aisleSelect").val()); });
-  $("#addAisleButton").click(function() {addAisle($("#modal").find("[name='aisleName']").val()); });
+        $("#aisleSelect").val(), false);
+      $("#modal").find("[name='itemName']").val('').focus();
+    });
+  $("#addItemAndCloseButton").click(function()
+    {
+      addItem(
+        $("#modal").find("[name='itemName']").val(),
+        $("#aisleSelect").val(), true); });
+  $("#addAisleButton").click(function() {
+    addAisle($("#modal").find("[name='aisleName']").val(), false);
+    $("#modal").find("[name='aisleName']").val('').focus();
+    });
+  $("#addAisleAndCloseButton").click(function() {addAisle($("#modal").find("[name='aisleName']").val(), true); });
   $("#createItemDialog").keypress(function (e) {
       if (e.which == 13) {
             $('#addItemButton').click();
@@ -639,7 +659,14 @@ function setListeners()
     {
       addMenuItem(
         $("#modal").find("[name='menuItemName']").val(),
-        $("#weekdaySelect").val()); });
+        $("#weekdaySelect").val(), false);
+      $("#modal").find("[name='menuItemName']").val('').focus();
+    });
+  $("#addAndCloseMenuItemButton").click(function()
+    {
+      addMenuItem(
+        $("#modal").find("[name='menuItemName']").val(),
+        $("#weekdaySelect").val(), true); });
 }
 
 function init()
