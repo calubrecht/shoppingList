@@ -277,6 +277,7 @@ function createPlannedItem(parentElement, id, name, aisle, number, enabled, done
       {
         items[planType].remove(id);
         box.remove();
+        post({"action":"deleteItem", "itemId":id}, handleCheckLogin);
       }).appendTo(box);
   }
   return id;
@@ -953,6 +954,7 @@ function resolveSort()
     aisles[aisleName] = aisle.sortable("toArray"); 
   }
   items[PLANNED_BUILD].setOrder(aisleOrder, aisles);
+  post({"action":"setShopList", "list":items[PLANNED_BUILD].toList()}, handleCheckLogin);
 }
 
 function setBuildList(data, statusCode)

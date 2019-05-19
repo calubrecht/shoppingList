@@ -174,6 +174,16 @@ else if ($request['action'] == "addItem")
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "keepTab", true);
 }
+else if ($request['action'] == "deleteItem")
+{
+  $res = deleteItem(getUser(), "shop", $request["itemId"]);
+  if ($res)
+  {
+    setResult($result, "error", $res);
+  }
+  setResult($result, "isLoggedIn", isLoggedIn());
+  setResult($result, "keepTab", true);
+}
 else if ($request['action'] == "saveDoneState")
 {
   saveDoneState(getUser(), $request);

@@ -104,6 +104,27 @@ function addItem($user, $type, $item, $id, $aisle, $order)
   $db->commitTransaction();
 }
 
+function deleteItem($user, $type, $id)
+{
+  global $db;
+  $db->beginTransaction();
+  $userId = getLoginInfo($user)['idusers'];
+  try
+  {
+    $order = $db->queryOneColumn("SELECT orderKey FROM lists WHERE userId=? and listType=? and id = ?", "orderKey", array($userId, $type, $id));
+    $db->execute("UPDATE lists SET orderKey = orderKey -1 WHERE userId=? and listType=? and orderKey >= ?", array($userId, $type, $order));
+    $db->execute("DELETE FROM lists WHERE userId =? and listType=? and id =?",
+      array($userId, $type, $id));
+  }
+  catch (Exception $e)
+  {
+    $db->rollbackTransaction();
+    error_log("Unable to add item " . $item . " - " . $e->getMessage());
+    return "Failed to add item"; 
+  } 
+  $db->commitTransaction();
+}
+
 function setWorkingList($user, $type, $list)
 {
   global $db;
