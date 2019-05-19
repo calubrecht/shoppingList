@@ -190,6 +190,18 @@ else if ($request['action'] == "saveDoneState")
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "keepTab", true);
 }
+else if ($request['action'] == "saveEnabledState")
+{
+  saveEnabledState(getUser(), $request);
+  setResult($result, "isLoggedIn", isLoggedIn());
+  setResult($result, "keepTab", true);
+}
+else if ($request['action'] == "saveCount")
+{
+  saveCount(getUser(), $request);
+  setResult($result, "isLoggedIn", isLoggedIn());
+  setResult($result, "keepTab", true);
+}
 else if ($request['action'] == "resetDoneState")
 {
   resetDoneState(getUser(), "saved");

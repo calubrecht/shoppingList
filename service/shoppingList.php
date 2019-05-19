@@ -215,6 +215,72 @@ function saveDoneState($user, $request)
   $db->commitTransaction();
 }
 
+function saveEnabledState($user, $request)
+{
+  global $db;
+  $db->beginTransaction();
+  $userId = getLoginInfo($user)['idusers'];
+  try
+  {
+    $id = $request['id'];
+    $enabledState = $request['enabledState'] ? 1 : 0;
+    $res = $db->execute("UPDATE lists set active = ? where userId =? and listType='shop' and id=?", array($enabledState, $userId, $id)); 
+    if (!$res)
+    {
+       $db->rollbackTransaction();
+       if ($db->error)
+       {
+         error_log("Unable to save enabled state for user" . $user . " - " . $db->error);
+       }
+       else
+       {
+         error_log("Unable to save enabled state for user" . $user . " - unknown error");
+       }
+       return "Unable to save enabled state";
+    }
+  }
+  catch (Exception $e)
+  {
+    $db->rollbackTransaction();
+    error_log("Unable to save enabled state for user" . $user . " - " . $e->getMessage());
+    return "Failed to save list"; 
+  }
+  $db->commitTransaction();
+}
+
+function saveCount($user, $request)
+{
+  global $db;
+  $db->beginTransaction();
+  $userId = getLoginInfo($user)['idusers'];
+  try
+  {
+    $id = $request['id'];
+    $count = $request['count'];
+    $res = $db->execute("UPDATE lists set count = ? where userId =? and listType='shop' and id=?", array($count, $userId, $id)); 
+    if (!$res)
+    {
+       $db->rollbackTransaction();
+       if ($db->error)
+       {
+         error_log("Unable to save count for user" . $user . " - " . $db->error);
+       }
+       else
+       {
+         error_log("Unable to save count for user" . $user . " - unknown error");
+       }
+       return "Unable to save count";
+    }
+  }
+  catch (Exception $e)
+  {
+    $db->rollbackTransaction();
+    error_log("Unable to save count for user" . $user . " - " . $e->getMessage());
+    return "Failed to save list"; 
+  }
+  $db->commitTransaction();
+}
+
 function resetDoneState($user, $type)
 {
   global $db;

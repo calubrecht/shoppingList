@@ -233,6 +233,7 @@ function createPlannedItem(parentElement, id, name, aisle, number, enabled, done
           return false;
         }
         items[planType].get(id).count = event.target.value;
+        saveCount(id, event.target.value);
       });
   }
   else
@@ -258,6 +259,10 @@ function createPlannedItem(parentElement, id, name, aisle, number, enabled, done
         if (isBuild)
         {
           num.prop('disabled', !val);
+          if (loadedTabs[PLANNED_BUILD])
+          {
+            saveEnabledState(id, val);
+          }
         }
         else
         {
@@ -546,14 +551,7 @@ function pickTab(tabName, clearMessage)
   }
   if (tabName == "shop")
   {
-    if (previousTab = "buildList") 
-    {
-      post({"action":"setShopList", "list":items[PLANNED_BUILD].toList()}, setShopList);
-    }
-    else
-    {
-      post({"action":"getShopList"}, setShopList);
-    }
+    post({"action":"getShopList"}, setShopList);
   }
   if (tabName == 'menu')
   {
@@ -813,6 +811,20 @@ function saveDoneState(id, val)
     handleCheckLogin);
 }
 
+function saveCount(id, val)
+{
+  post(
+    {"action":"saveCount", "id": id, "count": val},
+    handleCheckLogin);
+}
+
+function saveEnabledState(id, val)
+{
+  post(
+    {"action":"saveEnabledState", "id": id, "enabledState": val},
+    handleCheckLogin);
+}
+
 function revertBuildList()
 {
   post({"action":"getWorkingList"}, setBuildList);
@@ -963,6 +975,7 @@ function setBuildList(data, statusCode)
   {
     return;
   }
+  loadedTabs[PLANNED_BUILD] = false;;
   handleMessages(data);
   $("#buildListBody").empty();
   var aisleSorter = $("<div id='aisleSorter'>").
