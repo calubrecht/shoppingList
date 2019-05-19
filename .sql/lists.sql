@@ -8,6 +8,7 @@ CREATE TABLE `lists` (
    `count` int(11) NOT NULL,
    `active` tinyint(1) NOT NULL,
    `done` tinyint(1) NOT NULL DEFAULT '0',
-   PRIMARY KEY (`userId`,`listType`,`orderKey`),
-   UNIQUE KEY `UniqueId` (`userId`,`listType`,`id`)
+   PRIMARY KEY (`userId`,`listType`,`id`) USING BTREE,
+   KEY `order` (`userId`,`listType`,`orderKey`),
+   CONSTRAINT `listsUserIdFK` FOREIGN KEY (`userId`) REFERENCES `users` (`idusers`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1

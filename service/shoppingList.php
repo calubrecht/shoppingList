@@ -82,6 +82,28 @@ function safeID($id, $currentIds)
   return $idToUse;
 }
 
+function addItem($user, $type, $item, $id, $aisle, $order)
+{
+  global $db;
+  $db->beginTransaction();
+  $userId = getLoginInfo($user)['idusers'];
+  try
+  {
+    $db->execute("UPDATE lists SET orderKey = orderKey +1 WHERE userId=? and listType=? and orderKey >= ?", array($userId, $type, $order));
+    $db->execute(
+      "INSERT INTO lists (userId, listType, orderKey, id, aisle, name, count, active, done) VALUES (?, ?, ?, ?, ?, ?, 1, 1, 0)",
+      array($userId, $type, $order, $id, $aisle, $item));
+  }
+  catch (Exception $e)
+  {
+    $db->rollbackTransaction();
+    error_log("Unable to add item " . $item . " - " . $e->getMessage());
+    return "Failed to add item"; 
+  }
+
+  $db->commitTransaction();
+}
+
 function setWorkingList($user, $type, $list)
 {
   global $db;

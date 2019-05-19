@@ -101,6 +101,18 @@ function item_collection()
           }
         }
       };
+     this.findOrder = function(itemId)
+     {
+       var i = 0;
+       while ( i < this.ordering.length)
+       {
+         if (this.ordering[i] == itemId)
+         {
+           return i;
+         }
+         i++;
+       }
+     }
      this.renameAisle = function(oldName, newName)
      {
        for (i in this.aisleOrder)
@@ -451,11 +463,12 @@ function addItem(itemName, aisleName, close)
   lastAisle = aisleName;
   var aisleId = items[PLANNED_BUILD].aisleNames[aisleName];
   itemId = createPlannedItem($("#" + aisleId), null, itemName, aisleName,1, true, false, PLANNED_BUILD);
+  resolveSort();
+  post({"action":"addItem", "itemId":itemId, "itemName":itemName, "aisleName":aisleName, "order":items[PLANNED_BUILD].findOrder(itemId)}, handleCheckLogin);
   if (close)
   {
     hideAddDlg();
     $("#" + itemId).find('.itemNumber').focus().select();
-    resolveSort();
   }
 }
 
@@ -1057,7 +1070,7 @@ function resolveSortMenu()
     menus[dayName] = day.sortable("toArray"); 
   }
   items[PLANNED_MENU].setOrder(DAYS, menus);
-   post({"action":"setMenu", "list":items[PLANNED_MENU].toList()}, handleCheckLogin);
+  post({"action":"setMenu", "list":items[PLANNED_MENU].toList()}, handleCheckLogin);
 }
 
 function setMenu(data, statusCode)
