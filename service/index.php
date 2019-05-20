@@ -21,6 +21,15 @@ function setResult(&$res, $key, $value)
   $res[$key] = $value;
 }
 
+function setTS(&$res, $list, $ts)
+{
+  $tsObj = [];
+  $tsObj["list"] = $list;
+  $tsObj["ts"] = $ts;
+  $res["ts"] = $tsObj;
+}
+
+
 $db->dbInit();
 if ($db->error)
 {
@@ -112,9 +121,11 @@ else if (!isLoggedIn())
 else if ($request['action'] == "getWorkingList")
 {
   $msg = '';
-  $workingList = getWorkingList(getUser(), "saved", $msg);
+  $ts = null;
+  $workingList = getWorkingList(getUser(), "saved", $msg, $ts);
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "workingList", $workingList);
+  setTS($result, "shop", $ts);
   if ($msg)
   {
     setResult($result, "msg", $msg);
@@ -123,9 +134,11 @@ else if ($request['action'] == "getWorkingList")
 else if ($request['action'] == "getShopList")
 {
   $msg = '';
-  $workingList = getWorkingList(getUser(), "shop", $msg);
+  $ts = null;
+  $workingList = getWorkingList(getUser(), "shop", $msg, $ts);
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "workingList", $workingList);
+  setTS($result, "shop", $ts);
   if ($msg)
   {
     setResult($result, "msg", $msg);
@@ -134,9 +147,11 @@ else if ($request['action'] == "getShopList")
 else if ($request['action'] == "getMenu")
 {
   $msg = '';
-  $workingList = getWorkingList(getUser(), "menu", $msg);
+  $ts = null;
+  $workingList = getWorkingList(getUser(), "menu", $msg, $ts);
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "menu", $workingList);
+  setTS($result, "menu", $ts);
   if ($msg)
   {
     setResult($result, "msg", $msg);
@@ -144,76 +159,95 @@ else if ($request['action'] == "getMenu")
 }
 else if ($request['action'] == "saveList")
 {
-  $res = setWorkingList(getUser(), "saved",$request['list']);
+  $ts = null;
+  $res = setWorkingList(getUser(), "saved",$request['list'], $ts);
   if ($res)
   {
     setResult($result, "error", $res);
   }
-  $res = setWorkingList(getUser(), "shop", $request['list']);
+  $res = setWorkingList(getUser(), "shop", $request['list'], $ts);
   setResult($result, "isLoggedIn", isLoggedIn());
+  setTS($result, "shop", $ts);
 }
 else if ($request['action'] == "setShopList")
 {
-  $res = setWorkingList(getUser(), "shop", $request['list']);
+  $ts = null;
+  $res = setWorkingList(getUser(), "shop", $request['list'], $ts);
   if ($res)
   {
     setResult($result, "error", $res);
   }
   $msg = null;
-  $workingList = getWorkingList(getUser(), "shop", $msg);
+  $ts = null;
+  $workingList = getWorkingList(getUser(), "shop", $msg, $ts);
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "workingList", $workingList);
+  setTS($result, "shop", $ts);
 }
 else if ($request['action'] == "addItem")
 {
-  $res = addItem(getUser(), "shop", $request["itemName"], $request["itemId"], $request["aisleName"], $request["order"]);
+  $ts = null;
+  $res = addItem(getUser(), "shop", $request["itemName"], $request["itemId"], $request["aisleName"], $request["order"], $ts);
   if ($res)
   {
     setResult($result, "error", $res);
   }
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "keepTab", true);
+  setTS($result, "shop", $ts);
 }
 else if ($request['action'] == "deleteItem")
 {
-  $res = deleteItem(getUser(), "shop", $request["itemId"]);
+  $ts = null;
+  $res = deleteItem(getUser(), "shop", $request["itemId"], $ts);
   if ($res)
   {
     setResult($result, "error", $res);
   }
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "keepTab", true);
+  setTS($result, "shop", $ts);
 }
 else if ($request['action'] == "saveDoneState")
 {
-  saveDoneState(getUser(), $request);
+  $ts = null;
+  saveDoneState(getUser(), $request, $ts);
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "keepTab", true);
+  setTS($result, "shop", $ts);
 }
 else if ($request['action'] == "saveEnabledState")
 {
-  saveEnabledState(getUser(), $request);
+  $ts = null;
+  saveEnabledState(getUser(), $request, $ts);
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "keepTab", true);
+  setTS($result, "shop", $ts);
 }
 else if ($request['action'] == "saveCount")
 {
-  saveCount(getUser(), $request);
+  $ts = null;
+  saveCount(getUser(), $request, $ts);
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "keepTab", true);
+  setTS($result, "shop", $ts);
 }
 else if ($request['action'] == "resetDoneState")
 {
+  $ts = null;
   resetDoneState(getUser(), "saved");
   resetDoneState(getUser(), "shop");
   $msg = null;
-  $workingList = getWorkingList(getUser(), "shop", $msg);
+  $ts = null;
+  $workingList = getWorkingList(getUser(), "shop", $msg, $ts);
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "workingList", $workingList);
+  setTS($result, "shop", $ts);
 }
 else if ($request['action'] == "setMenu")
 {
-  $res = setWorkingList(getUser(), "menu", $request['list']);
+  $ts = null;
+  $res = setWorkingList(getUser(), "menu", $request['list'], $ts);
   if ($res)
   {
     setResult($result, "error", $res);
@@ -221,6 +255,7 @@ else if ($request['action'] == "setMenu")
   $msg = null;
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "keepTab", true);
+  setTS($result, "menu", $ts);
 }
 else
 {

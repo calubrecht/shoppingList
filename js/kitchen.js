@@ -5,6 +5,7 @@ const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 
 var activeTab = null;
 
 var loadedTabs = {build: false, shop:false};
+var tabTS = {shop: "", menu:""};
 
 function item_type(id, name, aisle, count, enabled, done)
 {
@@ -724,6 +725,7 @@ function logout()
 function cleanup()
 {
   loadedTabs = {build: false, shop:false};
+  tabTS = {shop: "", menu:""};
   items = {[PLANNED_BUILD]: new item_collection(), [PLANNED_SHOP]:  new item_collection(), [PLANNED_MENU]: new menuitem_collection()};
   $("#buildListBody").empty();
   $("#shopListBody").empty();
@@ -851,6 +853,7 @@ function checkLoggedIn(data)
     $(".msg").text("Session has timed out, please login again");
     return false;
   }
+  handleTS(data);
   return true;
 }
 
@@ -868,6 +871,7 @@ function handleCheckLogin(data, statusCode)
     setNotLoggedIn()
   }
   handleMessages(data);
+  handleTS(data);
   if (data["enableForgot"])
   {
     $(".forgotLink").show();
@@ -903,6 +907,21 @@ function handleMessages(data)
   if (data["error"])
   {
     $(".error").text(data['error']);
+  }
+}
+
+function handleTS(data)
+{
+  if (data["ts"])
+  {
+    if (data["ts"]["list"] == "shop")
+    {
+      tabTS["shop"] = data["ts"]["ts"];
+    }
+    if (data["ts"]["list"] == "menu")
+    {
+      tabTS["menu"] = data["ts"]["ts"];
+    }
   }
 }
 
