@@ -156,6 +156,17 @@ function item_collection()
        }
        return id;
      }
+     this.allDone = function()
+     {
+       for (v in this.collection)
+       {
+         if (this.collection[v]['done'])
+         {
+           return false;
+         }
+       }
+       return true;
+     }
      this.collection = {};
      this.aisles = [];
      this.aisleOrder = [];
@@ -270,6 +281,11 @@ function createPlannedItem(parentElement, id, name, aisle, number, enabled, done
           if (loadedTabs[PLANNED_SHOP])
           {
             saveDoneState(id.substring(2), !val);
+            if (items[planType].allDone())
+            {
+              var audio = document.getElementById("FinishSound");
+              audio.play();
+            }
           }
         }
       }
