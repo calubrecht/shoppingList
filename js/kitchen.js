@@ -523,10 +523,10 @@ function addMenuItem(itemName, weekDay, close)
     return;
   }
   itemId = createMenuItem($("#day_" + weekDay), null, itemName, weekDay, PLANNED_MENU);
+  resolveSortMenu();
   if (close)
   {
     hideAddMenuItemDlg();
-    resolveSortMenu();
   }
 }
 
