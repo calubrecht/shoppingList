@@ -632,11 +632,23 @@ function setListeners()
       addItem(
         $("#modal").find("[name='itemName']").val(),
         $("#aisleSelect").val(), true); });
+  $("#addItemAndCloseButton").keypress(function (e) {
+      if (e.which == 13) {
+            $('#addItemAndCloseButton').click();
+            return false;
+          }
+  });
   $("#addAisleButton").click(function() {
     addAisle($("#modal").find("[name='aisleName']").val(), false);
     $("#modal").find("[name='aisleName']").val('').focus();
     });
   $("#addAisleAndCloseButton").click(function() {addAisle($("#modal").find("[name='aisleName']").val(), true); });
+  $("#addAisleAndCloseButton").keypress(function (e) {
+      if (e.which == 13) {
+            $('#addAisleAndCloseButton').click();
+            return false;
+          }
+  });
   $("#createItemDialog").keypress(function (e) {
       if (e.which == 13) {
             $('#addItemButton').click();
@@ -696,6 +708,12 @@ function setListeners()
       addMenuItem(
         $("#modal").find("[name='menuItemName']").val(),
         $("#weekdaySelect").val(), true); });
+  $("#addAndCloseMenuItemButton").keypress(function (e) {
+      if (e.which == 13) {
+        $('#addAndCloseMenuItemButton').click();
+            return false;
+          }
+  });
 }
 
 function init()
