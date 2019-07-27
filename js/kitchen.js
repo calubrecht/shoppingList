@@ -611,6 +611,21 @@ function setListeners()
         return false;
       }
   });
+  $(document).on('keydown', function (e) {
+      if (e.ctrlKey && e.key == 'a')
+      {
+        if (activeTab == 'buildList')
+        {
+          showAddDlg();
+          return false;
+        }
+        if (activeTab == 'menu')
+        {
+          showAddMenuItemDlg();
+          return false;
+        }
+      }
+  });
   $("#buildListTab").on('keydown', function (e) {
       if (e.ctrlKey && e.key == 'l')
       {
