@@ -220,6 +220,13 @@ span.dayLabel
 {
   .close {display:none;}
 
+  div#body {display:none;}
+
+  .heading {display:none;}
+
+  body {background: white}
+  .modal  {background: white}
+
   #printView
   {
     margin: 5% auto;
