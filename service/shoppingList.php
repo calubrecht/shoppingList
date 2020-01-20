@@ -161,8 +161,8 @@ function setWorkingList($user, $type, $list, &$ts)
        $name = $item[1];
        $aisle = $item[2];
        $count = $item[3];
-       $enabled = $item[4];
-       $done = $item[5];
+       $enabled = $item[4] ? 1 : 0;
+       $done = $item[5] ? 1 : 0;
        if (!validateName($name))
        {
          $db->rollbackTransaction();
@@ -176,6 +176,7 @@ function setWorkingList($user, $type, $list, &$ts)
        $id = safeID($id, $currentIds);
        array_push($currentIds, $id);
        $res = $db->execute('INSERT INTO lists (userId, listType, orderKey, id, aisle, name, count, active, done) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', array($userId, $type, $i, $id, $aisle, $name, $count, $enabled, $done));
+       $qry = 'INSERT INTO lists (userId, listType, orderKey, id, aisle, name, count, active, done) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'. implode(",", array($userId, $type, $i, $id, $aisle, $name, $count, $enabled, $done, 'nogus'));
        $ts = updateTS($db, $userId, $type);
        error_log("Updated ts, ts= " .$ts);
        if (!$res)
@@ -188,6 +189,7 @@ function setWorkingList($user, $type, $list, &$ts)
          else
          {
            error_log("Unable to save list for user " . $user . " - unknown error");
+           error_log("failed query = " .$qry);
          }
          return "WTH?";
        }
