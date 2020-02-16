@@ -539,6 +539,14 @@ function pickTab(tabName, clearMessage)
     clearMessages();
   }
   tabBodyName = tabName + "Tab";
+  if (tabName == "buildList")
+  {
+    $(".floatingButtons").show();
+  }
+  else
+  {
+    $(".floatingButtons").hide();
+  }
   $(".tabBody").each(function(index) {
     if ($(this).attr('id') == tabBodyName)
     {
@@ -1073,6 +1081,12 @@ function setBuildList(data, statusCode)
   $("<button>Save</button>").click( function() { saveList(items[PLANNED_BUILD])}).appendTo(buttonPane);
   $("<button>Revert</button>").click( function() { revertBuildList()}).appendTo(buttonPane);
   $("<button title='Ctrl-L'>Add Aisle</button>").click( showAddAisleDlg).appendTo(buttonPane);
+  if ($(".floatingButtons").length == 0)
+  {
+    let floatingButtons = $("<div class='floatingButtons'>").appendTo("#body");
+    floatingButtons.append($("<div>").append($("<button title='Add item (Ctrl-A)'>Add Item</button>").click( showAddDlg)));
+    floatingButtons.append($("<div>").append($("<button title='Ctrl-L'>Add Aisle</button>")).click( showAddAisleDlg));
+  }
   loadedTabs[PLANNED_BUILD] = true;
   $("#buildListTab").focus();
 }
@@ -1179,3 +1193,4 @@ function setMenu(data, statusCode)
   $("<button>Printable View</button>").click( function() { showPrintableView(items[PLANNED_MENU]); }).appendTo(buttonPane);
   $("#menuTab").focus();
 }
+
