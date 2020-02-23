@@ -1174,6 +1174,12 @@ function resolveSortMenu()
   post({"action":"setMenu", "list":items[PLANNED_MENU].toList()}, handleCheckLogin);
 }
 
+function cleanMenu()
+{
+  items[PLANNED_MENU].clear();
+  items[PLANNED_MENU].aisleOrder = DAYS;
+}
+
 function setMenu(data, statusCode)
 {
   if (!checkLoggedIn(data))
@@ -1181,6 +1187,7 @@ function setMenu(data, statusCode)
     return;
   }
   $("#menuBody").empty();
+  cleanMenu();
   for (var i = 0; i < DAYS.length; i++)
   {
     $("#menuBody").append(createDayDiv(DAYS[i]));
