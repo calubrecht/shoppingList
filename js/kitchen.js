@@ -729,6 +729,11 @@ function setListeners()
         $("#modal").find("[name='menuItemName']").val(),
         $("#weekdaySelect").val(), false);
       $("#modal").find("[name='menuItemName']").val('').focus();
+      let lastDay = $("#weekdaySelect").val();
+      let lastDayIndex = DAYS.indexOf(lastDay);
+      let nextDayIndex = (lastDayIndex == 6 ? 6 : lastDayIndex+1);
+      let nextDay = DAYS[nextDayIndex];
+      $("#weekdaySelect").val(nextDay);
     });
   $("#addAndCloseMenuItemButton").click(function()
     {
