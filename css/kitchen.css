@@ -54,6 +54,24 @@ body
   margin:auto;
 }
 
+div.floatingButtons
+{
+  position: fixed;
+  top: 100px;
+  right: 0px;
+}
+
+div.floatingButtons button
+{
+    border-width: 3px 0px 3px 3px;
+    border-color: darkgrey;
+    border-style: outset;
+    border-radius: 8px 0px 0px 8px;
+    background: silver;
+    margin: 5px 0px;
+    width: 72px;
+}
+
 div.Item.disabled
 {
   color:grey;
@@ -214,6 +232,14 @@ span.dayLabel
   #buildListBody {width:100%}
   #shopListBody {width:100%}
 
+}
+
+@media only screen and (min-width: 1200px)
+{
+ div.floatingButtons button
+ {
+   display:none;
+ }
 }
 
 @media only print

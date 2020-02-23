@@ -18,6 +18,10 @@ function item_type(id, name, aisle, count, enabled, done)
 
   this.toList = function()
   {
+    if (this.aisle == null || this.aisle.trim() == '')
+    {
+      this.aisle = 'UNKNOWN';
+    }
     return [this.id, this.name, this.aisle, this.count, this.enabled, this.done];
   }
 }

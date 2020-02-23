@@ -100,6 +100,10 @@ function addItem($user, $type, $item, $id, $aisle, $order, &$ts)
   global $db;
   $db->beginTransaction();
   $userId = getLoginInfo($user)['idusers'];
+  if ($aisle.trim == "" )
+  {
+    $aise = "UNKNOWN";
+  }
   try
   {
     $ts = getTS($db, $userId, $type);
@@ -160,6 +164,10 @@ function setWorkingList($user, $type, $list, &$ts)
        $id = $item[0];
        $name = $item[1];
        $aisle = $item[2];
+       if ($aisle.trim == "" )
+       {
+         $aise = "UNKNOWN";
+       }
        $count = $item[3];
        $enabled = $item[4] ? 1 : 0;
        $done = $item[5] ? 1 : 0;
