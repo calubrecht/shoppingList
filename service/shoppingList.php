@@ -347,4 +347,15 @@ function resetDoneState($user, $type)
   }
   $db->commitTransaction();
 }
+
+function getRecipes($user)
+{
+  $list = array();
+  $i1 = array("name" => "Meager Recipe", "text" => "In a word, 'bluugh'", "keyIngredients" => ["boiledOats", "small rocks"], "commonIngredients" => ["salt"]);
+  $i2 = array("name" => "Gold Recipe", "text" => "Very flashy", "keyIngredients" => ["gold", "rubies", "caviar"], "commonIngredients" => ["bucks"]);
+  array_push($list, $i1);
+  array_push($list, $i2);
+  return $list;
+}
+
 ?>

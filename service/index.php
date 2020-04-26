@@ -257,6 +257,12 @@ else if ($request['action'] == "setMenu")
   setResult($result, "keepTab", true);
   setTS($result, "menu", $ts);
 }
+else if ($request['action'] == "getRecipes")
+{
+  $res = getRecipes(getUser()); 
+  setResult($result, "recipes", $res);
+  setResult($result, "isLoggedIn", isLoggedIn());
+}
 else
 {
   setResult($result, "isLoggedIn", isLoggedIn());
