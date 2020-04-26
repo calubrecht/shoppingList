@@ -350,11 +350,37 @@ function resetDoneState($user, $type)
 
 function getRecipes($user)
 {
+  global $db;
+  $db->beginTransaction();
+  $id = getLoginInfo($user)['idusers'];
   $list = array();
-  $i1 = array("name" => "Meager Recipe", "text" => "In a word, 'bluugh'", "keyIngredients" => ["boiledOats", "small rocks"], "commonIngredients" => ["salt"]);
-  $i2 = array("name" => "Gold Recipe", "text" => "Very flashy", "keyIngredients" => ["gold", "rubies", "caviar"], "commonIngredients" => ["bucks"]);
-  array_push($list, $i1);
-  array_push($list, $i2);
+  try
+  {
+    $res = $db->queryAll("SELECT name, text, keyIngredients, commonIngredients FROM recipes WHERE userId = ? ", $id);
+    if ($res)
+    {
+      foreach ($res as $row)
+      {
+        $kI_string = $row["keyIngredients"];
+        $cI_string = $row["commonIngredients"];
+        array_push(
+          $list,
+          array("name" => $row["name"], "text" => $row["text"], "keyIngredients" => json_decode($kI_string), "commonIngredients" => json_decode($cI_string) ));
+      }
+    }
+    else
+    {
+      $db->rollbackTransaction();
+      return  array();
+    }
+  }
+  catch (Exception $e)
+  {
+    $db->rollbackTransaction();
+    error_log("Unable to fetch recipe for user " . $user . " - " . $e->getMessage());
+    return [];
+  }
+  $db->rollbackTransaction();
   return $list;
 }
 
