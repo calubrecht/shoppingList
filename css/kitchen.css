@@ -222,10 +222,14 @@ span.dayLabel
   cursor: pointer;
 }
 
-#recipeRoot
+div.verticalScroll
 {
-  display:none;
+  overflow-y: scroll;
+  height: 98%;
+  padding-left:8px;
 }
+
+
 
 @media only screen and (max-width: 650px)
 {
