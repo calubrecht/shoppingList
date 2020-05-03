@@ -717,6 +717,10 @@ function setListeners()
     {
       if (e.key === "Escape")
     {
+      if (e.target.tagName === "TEXTAREA" || e.target.tagName === "INPUT")
+      {
+        return;
+      }
       hideAddDlg();
     }
     });
