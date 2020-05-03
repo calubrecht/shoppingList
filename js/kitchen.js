@@ -1117,6 +1117,7 @@ function setBuildList(data, statusCode)
   }
   loadedTabs[PLANNED_BUILD] = true;
   $("#buildListTab").focus();
+  window.scrollTo(0,0);
 }
 
 function setShopList(data, statusCode)
