@@ -7,6 +7,10 @@ var activeTab = null;
 var loadedTabs = {build: false, shop:false};
 var tabTS = {shop: "", menu:""};
 
+
+var CALLBACK_REGISTRY= {};
+window.CALLBACK_REGISTRY = CALLBACK_REGISTRY;
+
 function item_type(id, name, aisle, count, enabled, done)
 {
   this.id = id;
@@ -479,6 +483,21 @@ function showPrintableView(item_collection)
   $('#printView').find('.content').empty();
   item_collection.toPrintableView($('#printView').find('.content'));
   $('#printView').focus();
+}
+
+function showRecipes()
+{
+  let refreshGrid = CALLBACK_REGISTRY['refreshRecipeGrid'];
+  $("#createAisleError").text("");
+  $("#modal").show();
+  $('.modalDialog').hide();
+  $('#recipeDlg').show();
+  $('#recipeRoot').show();
+  $('#recipeDlg').focus();
+  if (refreshGrid)
+  {
+    refreshGrid();
+  }
 }
 
 function addItem(itemName, aisleName, close)
@@ -1207,6 +1226,7 @@ function setMenu(data, statusCode)
   var buttonPane = $("<div></div>").addClass("buttonPane").appendTo("#menuBody");
   $("<button>Clear Menu</button>").click(clearMenu).appendTo(buttonPane); 
   $("<button>Printable View</button>").click( function() { showPrintableView(items[PLANNED_MENU]); }).appendTo(buttonPane);
+  $("<button>Show Recipes</button>").click( function() { showRecipes(); }).appendTo(buttonPane);
   $("#menuTab").focus();
 }
 

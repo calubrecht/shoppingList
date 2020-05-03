@@ -176,6 +176,17 @@ span.dayLabel
   border-radius: 15px;
 }
 
+#recipeDlg
+{
+  background-color: #fefefe;
+  margin: 5% auto;
+  border: 1px solid #888;
+  width: 80%;
+  height: 80%;
+  padding-right: 10px;
+  border-radius: 15px;
+}
+
 #printView:focus {outline:none;}
 #printView .content
 {
@@ -209,6 +220,11 @@ span.dayLabel
   color:black;
   text-decoration: none;
   cursor: pointer;
+}
+
+#recipeRoot
+{
+  display:none;
 }
 
 @media only screen and (max-width: 650px)
