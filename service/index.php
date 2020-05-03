@@ -285,6 +285,17 @@ else if ($request['action'] == "addRecipe")
   setResult($result, "recipes", $res);
   setResult($result, "isLoggedIn", isLoggedIn());
 }
+else if ($request['action'] == "deleteRecipe")
+{
+  $res = deleteRecipe(getUser(), $request['recipe']);
+  if ($res)
+  {
+    setResult($result, "error", $res);
+  }
+  $res = getRecipes(getUser()); 
+  setResult($result, "recipes", $res);
+  setResult($result, "isLoggedIn", isLoggedIn());
+}
 else
 {
   setResult($result, "isLoggedIn", isLoggedIn());

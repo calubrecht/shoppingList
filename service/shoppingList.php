@@ -409,6 +409,31 @@ function editRecipe($user, $recipe)
   $db->commitTransaction();
 }
 
+function deleteRecipe($user, $recipe)
+{
+  global $db;
+  $db->beginTransaction();
+  $id = getLoginInfo($user)['idusers'];
+  try
+  {
+    $res = $db->execute("DELETE FROM recipes  WHERE userId=? and name=?", array($id, $recipe));
+    error_log("DELETE FROM recipes  WHERE userId=? and name=?" . $id . '-' .$recipe);
+      
+    if (!$res)
+    {
+      error_log("Unable to delete recipe " . $recipe . " - DBError:" . $db->error);
+      return "Failed to deleterecipe - " . $db->error;
+    }
+  }
+  catch (Exception $e)
+  {
+    $db->rollbackTransaction();
+    error_log("Unable to delete recipe " . $recipe . " - " . $e->getMessage());
+    return "Failed to delete recipe";
+  }
+  $db->commitTransaction();
+}
+
 function addRecipe($user, $recipe)
 {
   global $db;
