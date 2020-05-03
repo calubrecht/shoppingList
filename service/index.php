@@ -263,10 +263,20 @@ else if ($request['action'] == "getRecipes")
   setResult($result, "recipes", $res);
   setResult($result, "isLoggedIn", isLoggedIn());
 }
+else if ($request['action'] == "editRecipe")
+{
+  $res = editRecipe(getUser(), $request['recipe']);
+  if ($res)
+  {
+    setResult($result, "error", $res);
+  }
+  $res = getRecipes(getUser()); 
+  setResult($result, "recipes", $res);
+  setResult($result, "isLoggedIn", isLoggedIn());
+}
 else if ($request['action'] == "addRecipe")
 {
   $res = addRecipe(getUser(), $request['recipe']);
-  error_log("K" . $request['recipe'] . ' --[' . $request['recipe']['name'] . ']--');
   if ($res)
   {
     setResult($result, "error", $res);

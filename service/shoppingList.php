@@ -384,6 +384,31 @@ function getRecipes($user)
   return $list;
 }
 
+function editRecipe($user, $recipe)
+{
+  global $db;
+  $db->beginTransaction();
+  $id = getLoginInfo($user)['idusers'];
+  try
+  {
+    $keyIngredients = json_encode($recipe['keyIngredients']);
+    $commonIngredients = json_encode($recipe['commonIngredients']);
+    $res = $db->execute("UPDATE recipes set text=?, keyIngredients=?, commonIngredients=? WHERE userId=? and name=?", array($recipe['text'], $keyIngredients, $commonIngredients, $id, $recipe['name']));
+    if (!$res)
+    {
+      error_log("Unable to edit recipe " . $recipe['name'] . " - DBError:" . $db->error);
+      return "Failed to edit recipe - " . $db->error;
+    }
+  }
+  catch (Exception $e)
+  {
+    $db->rollbackTransaction();
+    error_log("Unable to edit recipe " . $recipe['name'] . " - " . $e->getMessage());
+    return "Failed to edit recipe";
+  }
+  $db->commitTransaction();
+}
+
 function addRecipe($user, $recipe)
 {
   global $db;
@@ -407,7 +432,6 @@ function addRecipe($user, $recipe)
     return "Failed to add recipe";
   }
   $db->commitTransaction();
-  return "Farfegnugen";
 }
 
 ?>
