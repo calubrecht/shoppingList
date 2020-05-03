@@ -1226,7 +1226,7 @@ function setMenu(data, statusCode)
   var buttonPane = $("<div></div>").addClass("buttonPane").appendTo("#menuBody");
   $("<button>Clear Menu</button>").click(clearMenu).appendTo(buttonPane); 
   $("<button>Printable View</button>").click( function() { showPrintableView(items[PLANNED_MENU]); }).appendTo(buttonPane);
-  $("<button>Show Recipes</button>").click( function() { showRecipes(); }).appendTo(buttonPane);
+  $("<button class='hideOnPhone'>Show Recipes</button>").click( function() { showRecipes(); }).appendTo(buttonPane);
   $("#menuTab").focus();
 }
 
