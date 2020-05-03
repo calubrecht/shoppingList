@@ -224,7 +224,7 @@ span.dayLabel
 
 div.verticalScroll
 {
-  overflow-y: scroll;
+  overflow-y: auto;
   height: 98%;
   padding-left:8px;
 }
