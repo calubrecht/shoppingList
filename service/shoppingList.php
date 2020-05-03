@@ -36,7 +36,7 @@ function getWorkingList($user, $type, &$msg, &$ts)
       $db->commitTransaction();
       if ($type == 'shop')
       {
-        return getWorkingList($user, "saved", $msg);
+        return getWorkingList($user, "saved", $msg, $ts);
       }
       if ($type == 'menu')
       {
@@ -382,6 +382,32 @@ function getRecipes($user)
   }
   $db->rollbackTransaction();
   return $list;
+}
+
+function addRecipe($user, $recipe)
+{
+  global $db;
+  $db->beginTransaction();
+  $id = getLoginInfo($user)['idusers'];
+  try
+  {
+    $keyIngredients = json_encode($recipe['keyIngredients']);
+    $commonIngredients = json_encode($recipe['commonIngredients']);
+    $res = $db->execute("INSERT INTO recipes (userId, name, text, keyIngredients, commonIngredients) VALUES (?, ?, ?, ?, ?) ", array($id, $recipe['name'], $recipe['text'], $keyIngredients, $commonIngredients));
+    if (!$res)
+    {
+      error_log("Unable to add recipe " . $recipe['name'] . " - DBError:" . $db->error);
+      return "Failed to add recipe - " . $db->error;
+    }
+  }
+  catch (Exception $e)
+  {
+    $db->rollbackTransaction();
+    error_log("Unable to add recipe " . $recipe['name'] . " - " . $e->getMessage());
+    return "Failed to add recipe";
+  }
+  $db->commitTransaction();
+  return "Farfegnugen";
 }
 
 ?>

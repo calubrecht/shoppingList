@@ -123,6 +123,7 @@ class dbHolder
     }
 		try
     {
+      $this->error = '';
 		  $host = $CONFIG["DB_HOST"];
       $dbName = $CONFIG["DB_NAME"];
       $dbport = $CONFIG["DB_PORT"];
