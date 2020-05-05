@@ -37,6 +37,7 @@
        <span class="tab" id="logout" onclick="logout()">Logout</span>
      </div>
      <div id="loginTab" class="tabBody narrow">
+       <form>
         <div>Login</div>
         <div class="error" id="loginError"></div>
         <div class="msg" id="loginMsg"></div>
@@ -44,6 +45,7 @@
         <div><div class="password firstColumn">Password:</div> <input class="secondColumn loginForm" type="password" name="password"></div>
         <div><input type="submit" value="Login" onclick="login()" id="loginSubmit"></div>
         <div><span onclick="forgotPassword()" class="forgotLink">Forgot Password?</span></div>
+       </form>
      </div>
      <div id="passwordTab" class="tabBody narrow">
         <div class="error" id="passwordError"></div>
