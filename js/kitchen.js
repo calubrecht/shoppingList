@@ -776,6 +776,11 @@ function init()
   pickTab('invalid', true); // Hide all tabs, initially.
   post({"action":"checkLogin"}, handleCheckLogin);
   setListeners();
+
+  let script = document.createElement("script");
+  script.setAttribute("type", "text/javascript");
+  script.setAttribute("src", "js/bundle.js");
+  document.getElementsByTagName("head")[0].appendChild(script);
 }
 
 function selectText(node)
