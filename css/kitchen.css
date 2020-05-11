@@ -187,6 +187,29 @@ span.dayLabel
   border-radius: 15px;
 }
 
+#aboutDlg
+{
+  background-color: #fefefe;
+  margin: 5% auto;
+  border: 1px solid #888;
+  width: 80%;
+  padding: 10px;
+  border-radius: 15px;
+}
+#aboutDlg div
+{
+  margin: 2px;
+}
+
+#aboutDlg div.attributions
+{
+  padding: 5px;
+  font-size: smaller;
+  margin-top: 25px;
+
+}
+
+
 #printView:focus {outline:none;}
 #printView .content
 {

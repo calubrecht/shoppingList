@@ -23,7 +23,7 @@
 <meta name="theme-color" content="#ffffff">
 </HEAD>
 <BODY onload="init();">
-  <img class="heading" src="/sl_icons/sd_sm.png">
+  <img class="heading" src="/sl_icons/sd_sm.png" onclick="showAboutDlg()">
   <audio id="FinishSound" src="audio/success.wav" preload=true></audio>
   <h1 class="heading" >Your Shopping List</h1>
   <div id="body">
@@ -138,6 +138,21 @@
       <span class="close">&times;</span>
       <div class="verticalScroll">
         <div id='recipeRoot'></div>
+      </div>
+    </div>
+    <div class='modalDialog' id='aboutDlg' tabindex=0>
+      <span class="close">&times;</span>
+        <img class="heading" src="/sl_icons/sd_sm.png">
+        <h1 class="heading" >Your Shopping List</h1>
+        <div>A simple app for managing your shopping lists.</div>
+        <div><a href="https://github.com/calubrecht/shoppingList">https://github.com/calubrecht/shoppingList</a></div>
+        <div>Copyright: Chad Lubrecht 2020</div>
+        <div class="attributions">
+        <div><a href="https://www.iconfinder.com/icons/648246/dinner_food_gi_lunch_meal_restaurant_vegetables_icon">Header icon</a>
+          by <a href="https://www.iconfinder.com/paulonroe">Maria Paulsson</a></div>
+        <div>Checkbox Icon made by <a href="https://www.flaticon.com/authors/dave-gandy" title="Dave Gandy">Dave Gandy</a> from <a href="https://www.flaticon.com/" title="Flaticon"> www.flaticon.com</a></div>
+        <div>Pencil Icon made by <a href="https://www.flaticon.com/authors/google" title="Google">Google</a> from <a href="https://www.flaticon.com/" title="Flaticon"> www.flaticon.com</a> </div>
+        </div>
       </div>
     </div>
   </div>

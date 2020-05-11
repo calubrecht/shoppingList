@@ -428,6 +428,7 @@ function hideAddDlg()
 {
   $("#modal").hide();
   $("#buildListTab").focus();
+  window.scrollTo(0,0);
   if (selectingFromRecipes)
   {
     selectingFromRecipes = false;
@@ -506,6 +507,14 @@ function showRecipes()
     setQueryMode(false);
     refreshGrid();
   }
+}
+
+function showAboutDlg()
+{
+  $("#modal").show();
+  $('.modalDialog').hide();
+  $('#aboutDlg').show();
+  $('#aboutDlg').focus();
 }
 
 function addItem(itemName, aisleName, close)
