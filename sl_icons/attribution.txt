@@ -4,3 +4,10 @@ https://www.iconfinder.com/paulonroe
 
 Gravitar
 https://www.gravatar.com/avatar/72c74fffa00cb1b5aac09e78a0b40a1b?d=retro&f=y&s=260
+
+checkbox:
+Icons made by <a href="https://www.flaticon.com/authors/dave-gandy" title="Dave Gandy">Dave Gandy</a> from <a href="https://www.flaticon.com/" title="Flaticon"> www.flaticon.com</a>
+
+pencil:
+Icons made by <a href="https://www.flaticon.com/authors/google" title="Google">Google</a> from <a href="https://www.flaticon.com/" title="Flaticon"> www.flaticon.com</a>
+

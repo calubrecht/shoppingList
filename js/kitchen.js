@@ -430,6 +430,7 @@ function hideAddDlg()
   $("#buildListTab").focus();
   if (selectingFromRecipes)
   {
+    selectingFromRecipes = false;
     showAddMenuItemDlg();
   }
 }
@@ -726,7 +727,11 @@ function setListeners()
     {
       if (e.target.tagName === "TEXTAREA" || e.target.tagName === "INPUT")
       {
-        return;
+        let cl = e.target.className;
+        if (cl === 'commonIngredients' || cl === 'keyIngredients' || cl === 'description' || cl === 'name')
+        {
+          return;
+        }
       }
       hideAddDlg();
     }
@@ -838,13 +843,15 @@ function selectText(node)
 
 }
 
-function login()
+function login(event)
 {
+  event.preventDefault();
   var userName=$( "input[name='username']" ).val();
   var password=$( "input[name='password']" ).val();
   post(
     {"action":"login", "userName":userName,"password":password},
     handleCheckLogin);
+  return false;
 }
 function logout()
 {

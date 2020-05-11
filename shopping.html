@@ -43,7 +43,7 @@
         <div class="msg" id="loginMsg"></div>
         <div><div class="login firstColumn">Username: </div><input class="secondColumn loginForm" type="text" name="username"></div>
         <div><div class="password firstColumn">Password:</div> <input class="secondColumn loginForm" type="password" name="password"></div>
-        <div><input type="submit" value="Login" onclick="login()" id="loginSubmit"></div>
+        <div><input type="submit" value="Login" onclick="login(event)" id="loginSubmit"></div>
         <div><span onclick="forgotPassword()" class="forgotLink">Forgot Password?</span></div>
        </form>
      </div>
@@ -125,6 +125,7 @@
       </div>
       <div>
         <button id="addMenuItemButton">Add</button>
+        <button id="selectMenuItemButton">Select...</button>
         <button id="addAndCloseMenuItemButton">Add and Close</button>
       </div>
     </div>
