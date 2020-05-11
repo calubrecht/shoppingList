@@ -6,6 +6,7 @@ var activeTab = null;
 
 var loadedTabs = {build: false, shop:false};
 var tabTS = {shop: "", menu:""};
+var selectingFromRecipes = false;
 
 
 var CALLBACK_REGISTRY= {};
@@ -427,6 +428,10 @@ function hideAddDlg()
 {
   $("#modal").hide();
   $("#buildListTab").focus();
+  if (selectingFromRecipes)
+  {
+    showAddMenuItemDlg();
+  }
 }
 
 function hideAddMenuItemDlg()
@@ -488,6 +493,7 @@ function showPrintableView(item_collection)
 function showRecipes()
 {
   let refreshGrid = CALLBACK_REGISTRY['refreshRecipeGrid'];
+  let setQueryMode = CALLBACK_REGISTRY['setQueryMode'];
   $("#createAisleError").text("");
   $("#modal").show();
   $('.modalDialog').hide();
@@ -496,6 +502,7 @@ function showRecipes()
   $('#recipeDlg').focus();
   if (refreshGrid)
   {
+    setQueryMode(false);
     refreshGrid();
   }
 }
@@ -757,6 +764,35 @@ function setListeners()
       let nextDayIndex = (lastDayIndex == 6 ? 6 : lastDayIndex+1);
       let nextDay = DAYS[nextDayIndex];
       $("#weekdaySelect").val(nextDay);
+    });
+  $("#selectMenuItemButton").click(function()
+    {
+      selectingFromRecipes = true;
+      $('#createMenuItemDialog').hide();
+      $('#recipeDlg').show();
+      $('#recipeRoot').show();
+      $('#recipeDlg').focus();
+      let refreshGrid = CALLBACK_REGISTRY['refreshRecipeGrid'];
+      let setQueryMode = CALLBACK_REGISTRY['setQueryMode'];
+      let setSelectCB = CALLBACK_REGISTRY['setSelectCB'];
+      if (refreshGrid)
+      {
+        setQueryMode(true);
+        refreshGrid();
+        setSelectCB(  (recipeName) =>
+          {
+            setTimeout( ()=>
+              {
+                selectingFromRecipes = false;
+                $("#modal").find("[name='menuItemName']").val(recipeName),
+                $('#recipeDlg').hide();
+                $('#createMenuItemDialog').show();
+                setQueryMode(false);
+              },
+              500
+            );
+          });
+      }
     });
   $("#addAndCloseMenuItemButton").click(function()
     {
