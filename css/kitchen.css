@@ -185,6 +185,7 @@ span.dayLabel
   height: 80%;
   padding-right: 10px;
   border-radius: 15px;
+  outline: none;
 }
 
 #aboutDlg
