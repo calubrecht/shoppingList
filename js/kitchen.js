@@ -821,16 +821,20 @@ function setListeners()
   });
 }
 
+function addScript(scriptName)
+{
+  let script = document.createElement("script");
+  script.setAttribute("type", "text/javascript");
+  script.setAttribute("src", scriptName);
+  document.getElementsByTagName("head")[0].appendChild(script);
+}
+
 function init()
 {
   pickTab('invalid', true); // Hide all tabs, initially.
   post({"action":"checkLogin"}, handleCheckLogin);
   setListeners();
-
-  let script = document.createElement("script");
-  script.setAttribute("type", "text/javascript");
-  script.setAttribute("src", "js/bundle.js");
-  document.getElementsByTagName("head")[0].appendChild(script);
+  addScript("js/bundle.js");
 }
 
 function selectText(node)
