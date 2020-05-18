@@ -356,7 +356,7 @@ function getRecipes($user)
   $list = array();
   try
   {
-    $res = $db->queryAll("SELECT name, text, keyIngredients, commonIngredients FROM recipes WHERE userId = ? ", $id);
+    $res = $db->queryAll("SELECT name, text, keyIngredients, commonIngredients, id FROM recipes WHERE userId = ? ", $id);
     if ($res)
     {
       foreach ($res as $row)
@@ -365,7 +365,7 @@ function getRecipes($user)
         $cI_string = $row["commonIngredients"];
         array_push(
           $list,
-          array("name" => $row["name"], "text" => $row["text"], "keyIngredients" => json_decode($kI_string), "commonIngredients" => json_decode($cI_string) ));
+          array("name" => $row["name"], "text" => $row["text"], "keyIngredients" => json_decode($kI_string), "commonIngredients" => json_decode($cI_string), "id" => $row["id"] ));
       }
     }
     else
@@ -441,9 +441,18 @@ function addRecipe($user, $recipe)
   $id = getLoginInfo($user)['idusers'];
   try
   {
+    $res = $db->queryAll("SELECT (max(id) + 1) as nextId FROM recipes WHERE userId = ? ", $id);
+    if (res)
+    {
+      $recipeId = $res[0]["nextId"];
+    }
+    else
+    {
+      $recipeId = 1;
+    }
     $keyIngredients = json_encode($recipe['keyIngredients']);
     $commonIngredients = json_encode($recipe['commonIngredients']);
-    $res = $db->execute("INSERT INTO recipes (userId, name, text, keyIngredients, commonIngredients) VALUES (?, ?, ?, ?, ?) ", array($id, $recipe['name'], $recipe['text'], $keyIngredients, $commonIngredients));
+    $res = $db->execute("INSERT INTO recipes (userId, name, text, keyIngredients, commonIngredients, id) VALUES (?, ?, ?, ?, ?, ?) ", array($id, $recipe['name'], $recipe['text'], $keyIngredients, $commonIngredients, $recipeID));
     if (!$res)
     {
       error_log("Unable to add recipe " . $recipe['name'] . " - DBError:" . $db->error);
