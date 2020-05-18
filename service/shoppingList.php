@@ -442,17 +442,21 @@ function addRecipe($user, $recipe)
   try
   {
     $res = $db->queryAll("SELECT (max(id) + 1) as nextId FROM recipes WHERE userId = ? ", $id);
-    if (res)
+    if ($res)
     {
       $recipeId = $res[0]["nextId"];
+      if (!$recipeId)
+      {
+        $recipeId = 1;
+      }
     }
     else
     {
       $recipeId = 1;
     }
-    $keyIngredients = json_encode($recipe['keyIngredients']);
-    $commonIngredients = json_encode($recipe['commonIngredients']);
-    $res = $db->execute("INSERT INTO recipes (userId, name, text, keyIngredients, commonIngredients, id) VALUES (?, ?, ?, ?, ?, ?) ", array($id, $recipe['name'], $recipe['text'], $keyIngredients, $commonIngredients, $recipeID));
+    $keyIngredients = array_key_exists('keyIngredients', $recipe) ? $json_encode($recipe['keyIngredients']) : '[]';
+    $commonIngredients = array_key_exists('commonIngredients', $recipe) ? $json_encode($recipe['commonIngredients']) : '[]';
+    $res = $db->execute("INSERT INTO recipes (userId, name, text, keyIngredients, commonIngredients, id) VALUES (?, ?, ?, ?, ?, ?) ", array($id, $recipe['name'], $recipe['text'], $keyIngredients, $commonIngredients, $recipeId));
     if (!$res)
     {
       error_log("Unable to add recipe " . $recipe['name'] . " - DBError:" . $db->error);
