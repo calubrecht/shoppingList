@@ -296,6 +296,15 @@ else if ($request['action'] == "deleteRecipe")
   setResult($result, "recipes", $res);
   setResult($result, "isLoggedIn", isLoggedIn());
 }
+else if ($request['action'] == "setOrder")
+{
+  $res = setOrder(getUser(), $request['orderedItems']);
+  if ($res)
+  {
+    setResult($result, "error", $res);
+  }
+  setResult($result, "isLoggedIn", isLoggedIn());
+}
 else
 {
   setResult($result, "isLoggedIn", isLoggedIn());

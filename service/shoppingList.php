@@ -356,7 +356,7 @@ function getRecipes($user)
   $list = array();
   try
   {
-    $res = $db->queryAll("SELECT name, text, keyIngredients, commonIngredients, id FROM recipes WHERE userId = ? ", $id);
+    $res = $db->queryAll("SELECT name, text, keyIngredients, commonIngredients, id FROM recipes WHERE userId = ? ORDER BY sortOrder ASC", $id);
     if ($res)
     {
       foreach ($res as $row)
@@ -382,6 +382,34 @@ function getRecipes($user)
   }
   $db->rollbackTransaction();
   return $list;
+}
+
+function setOrder($user, $orderedItems)
+{
+  global $db;
+  $db->beginTransaction();
+  $id = getLoginInfo($user)['idusers'];
+  try
+  {
+    $sortOrder = 1;
+    $errors = '';
+    foreach ($orderedItems as $itemID )
+    {
+      $res = $db->execute("UPDATE recipes set sortOrder=? WHERE userId=? and id=?", array($sortOrder, $id, $itemID));
+      $sortOrder++;
+      if (!$res)
+      {
+        $errors = "Unable to update sort order " . $db->error;
+      }
+    }
+  }
+  catch (Exception $e)
+  {
+    $db->rollbackTransaction();
+    return "Failed to update sort order";
+  }
+  $db->commitTransaction();
+  return $errors;
 }
 
 function editRecipe($user, $recipe)
@@ -454,9 +482,22 @@ function addRecipe($user, $recipe)
     {
       $recipeId = 1;
     }
+    $res = $db->queryAll("SELECT (max(sortOrder) + 1) as nextOrder FROM recipes WHERE userId = ? ", $id);
+    if ($res)
+    {
+      $sortOrder = $res[0]["nextOrder"];
+      if (!$sortOrder)
+      {
+        $sortOrder = 1;
+      }
+    }
+    else
+    {
+      $sortOrder = 1;
+    }
     $keyIngredients = array_key_exists('keyIngredients', $recipe) ? $json_encode($recipe['keyIngredients']) : '[]';
     $commonIngredients = array_key_exists('commonIngredients', $recipe) ? $json_encode($recipe['commonIngredients']) : '[]';
-    $res = $db->execute("INSERT INTO recipes (userId, name, text, keyIngredients, commonIngredients, id) VALUES (?, ?, ?, ?, ?, ?) ", array($id, $recipe['name'], $recipe['text'], $keyIngredients, $commonIngredients, $recipeId));
+    $res = $db->execute("INSERT INTO recipes (userId, name, text, keyIngredients, commonIngredients, id, sortOrder) VALUES (?, ?, ?, ?, ?, ?, ?) ", array($id, $recipe['name'], $recipe['text'], $keyIngredients, $commonIngredients, $recipeId, $sortOrder));
     if (!$res)
     {
       error_log("Unable to add recipe " . $recipe['name'] . " - DBError:" . $db->error);
