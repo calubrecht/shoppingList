@@ -5,6 +5,7 @@ CREATE TABLE `recipes` (
   `keyIngredients` varchar(8000) NOT NULL DEFAULT '[]',
   `commonIngredients` varchar(8000) NOT NULL DEFAULT '[]',
   `id` int NOT NULL,
+  `sortOrder` int NOT NULL DEFAULT '2147483647',
   PRIMARY KEY (`userId`,`id`),
   CONSTRAINT `recipeFK` FOREIGN KEY (`userId`) REFERENCES `users` (`idusers`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
