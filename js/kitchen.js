@@ -609,7 +609,7 @@ function pickTab(tabName, clearMessage)
   });
   if (tabName == "buildList")
   {
-     if (previousTab == "invalid" || previousTab == "shop" || previousTab == "login") 
+     if (previousTab == "invalid" || previousTab == "shop" || previousTab == "login" || previousTab == "register" ) 
      {
        post({"action":"getShopList"}, setBuildList);
      }
