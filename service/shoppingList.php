@@ -495,8 +495,8 @@ function addRecipe($user, $recipe)
     {
       $sortOrder = 1;
     }
-    $keyIngredients = array_key_exists('keyIngredients', $recipe) ? $json_encode($recipe['keyIngredients']) : '[]';
-    $commonIngredients = array_key_exists('commonIngredients', $recipe) ? $json_encode($recipe['commonIngredients']) : '[]';
+    $keyIngredients = array_key_exists('keyIngredients', $recipe) ? json_encode($recipe['keyIngredients']) : '[]';
+    $commonIngredients = array_key_exists('commonIngredients', $recipe) ? json_encode($recipe['commonIngredients']) : '[]';
     $res = $db->execute("INSERT INTO recipes (userId, name, text, keyIngredients, commonIngredients, id, sortOrder) VALUES (?, ?, ?, ?, ?, ?, ?) ", array($id, $recipe['name'], $recipe['text'], $keyIngredients, $commonIngredients, $recipeId, $sortOrder));
     if (!$res)
     {
