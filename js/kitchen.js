@@ -8,6 +8,7 @@ var loadedTabs = {build: false, shop:false};
 var tabTS = {shop: "", menu:""};
 var selectingFromRecipes = false;
 
+var pollTimer = null;
 
 var CALLBACK_REGISTRY= {};
 window.CALLBACK_REGISTRY = CALLBACK_REGISTRY;
@@ -1060,6 +1061,75 @@ function handleMessages(data)
   }
 }
 
+var skips = 0;
+var emptyPolls = 0;
+function doPoll()
+{
+   if (!document.hasFocus())
+   {
+     return;
+   }
+   if (document.hidden || document.msHidden || document.webkitHidden)
+   {
+     return;
+   }
+   if (skips >0)
+   {
+     skips--;
+     return;
+   }
+   post({"action":"tick"}, handlePoll);
+}
+
+function handlePoll(data)
+{
+   let updates = 0;
+   if (activeTab == "buildList")
+   {
+     if (data["tock"]["shop"] != tabTS["shop"])
+     {
+       post({"action":"getShopList"}, setBuildList);
+       updates++;
+     }
+   }
+   else if (activeTab == "shop")
+   {
+     if (data["tock"]["shop"] != tabTS["shop"])
+     {
+       post({"action":"getShopList"}, setShopList);
+       updates++;
+     }
+   }
+   else if (activeTab == "menu")
+   {
+     if (data["tock"]["menu"] != tabTS["menu"])
+     {
+       post({"action":"getMenu"}, setMenu);
+       updates++;
+     }
+   }
+   if (updates == 0)
+   {
+     emptyPolls++;
+   }
+   else
+   {
+     emptyPolls = 0;
+   }
+   if (emptyPolls > 30)
+   {
+     skips = 10;
+   }
+   if (emptyPolls > 40)
+   {
+     skips = 30;
+   }
+   if (emptyPolls > 50)
+   {
+     skips = 120;
+   }
+}
+
 function handleTS(data)
 {
   if (data["ts"])
@@ -1092,6 +1162,10 @@ function setNotLoggedIn()
   showTabs(["login", "register"]);
   hideTabs(["buildList", "shop", "logout", "password", "menu"]);
   pickTab("login", false);
+  if (pollTimer)
+  {
+     window.clearInterval(pollTimer);
+  }
 }
 
 function setLoggedIn()
@@ -1099,6 +1173,10 @@ function setLoggedIn()
   showTabs(["buildList", "shop", "menu","logout"]);
   hideTabs(["login", "password", "register"]);
   pickTab("buildList", false);
+  if (!pollTimer)
+  {
+     pollTimer = window.setInterval(doPoll, 1000);
+  }
 }
 
 function showTabs(tabNames)

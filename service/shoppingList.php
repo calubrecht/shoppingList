@@ -20,6 +20,25 @@ function updateTS($db, $userId, $list, $ts)
   return $ts;
 }
 
+function getTStamps($user)
+{
+  global $db;
+  $userId = getLoginInfo($user)['idusers'];
+  $db->beginTransaction();
+  $res = $db->queryAll("SELECT listName,lastUpdate from listTS Where userId=?",  array($userId));
+  error_log("SELECT listName,lastUpdate from listTS Where userId=" .$userId);
+  $tstamps = array();
+  if ($res)
+  {
+      foreach ($res as $row)
+      {
+        $tstamps[$row["listName"]] = $row["lastUpdate"];
+      }
+  }
+  $db->rollbackTransaction();
+  return $tstamps;
+}
+
 function getWorkingList($user, $type, &$msg, &$ts)
 {
   global $db;

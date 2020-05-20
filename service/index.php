@@ -118,6 +118,12 @@ else if (!isLoggedIn())
 {
   setResult($result, "isLoggedIn", isLoggedIn());
 }
+else if ($request['action'] == "tick")
+{
+  setResult($result, "isLoggedIn", isLoggedIn());
+  setResult($result, "tock", getTStamps(getUser()));
+  error_log("tock");
+}
 else if ($request['action'] == "getWorkingList")
 {
   $msg = '';
