@@ -1072,6 +1072,10 @@ function handleTS(data)
     {
       tabTS["menu"] = data["ts"]["ts"];
     }
+    if (data["ts"]["ist"] == "saved")
+    {
+      tabTS["saved"] = data["ts"]["ts"];
+    }
   }
 }
 
@@ -1135,7 +1139,7 @@ function resolveSort()
     aisles[aisleName] = aisle.sortable("toArray"); 
   }
   items[PLANNED_BUILD].setOrder(aisleOrder, aisles);
-  post({"action":"setShopList", "list":items[PLANNED_BUILD].toList()}, handleCheckLogin);
+  post({"action":"setShopList", "list":items[PLANNED_BUILD].toList(), "ts":tabTS["shop"]}, setBuildList);
 }
 
 function setBuildList(data, statusCode)
@@ -1261,7 +1265,7 @@ function resolveSortMenu()
     menus[dayName] = day.sortable("toArray"); 
   }
   items[PLANNED_MENU].setOrder(DAYS, menus);
-  post({"action":"setMenu", "list":items[PLANNED_MENU].toList()}, handleCheckLogin);
+  post({"action":"setMenu", "list":items[PLANNED_MENU].toList(), "ts":tabTS["menu"] }, setMenu);
 }
 
 function cleanMenu()
@@ -1276,6 +1280,7 @@ function setMenu(data, statusCode)
   {
     return;
   }
+  handleMessages(data);
   $("#menuBody").empty();
   cleanMenu();
   for (var i = 0; i < DAYS.length; i++)

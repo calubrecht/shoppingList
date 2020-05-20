@@ -12,3 +12,13 @@ CREATE TABLE `lists` (
    KEY `order` (`userId`,`listType`,`orderKey`),
    CONSTRAINT `listsUserIdFK` FOREIGN KEY (`userId`) REFERENCES `users` (`idusers`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1
+
+
+CREATE TABLE `listTS` (
+  `userId` int NOT NULL,
+  `listName` varchar(120) NOT NULL,
+  `lastUpdate` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`userId`,`listName`) USING BTREE,
+  CONSTRAINT `userFK` FOREIGN KEY (`userId`) REFERENCES `users` (`idusers`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+

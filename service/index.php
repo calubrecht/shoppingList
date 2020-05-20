@@ -125,7 +125,7 @@ else if ($request['action'] == "getWorkingList")
   $workingList = getWorkingList(getUser(), "saved", $msg, $ts);
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "workingList", $workingList);
-  setTS($result, "shop", $ts);
+  setTS($result, "work", $ts);
   if ($msg)
   {
     setResult($result, "msg", $msg);
@@ -171,7 +171,7 @@ else if ($request['action'] == "saveList")
 }
 else if ($request['action'] == "setShopList")
 {
-  $ts = null;
+  $ts = $request["ts"];
   $res = setWorkingList(getUser(), "shop", $request['list'], $ts);
   if ($res)
   {
@@ -246,7 +246,7 @@ else if ($request['action'] == "resetDoneState")
 }
 else if ($request['action'] == "setMenu")
 {
-  $ts = null;
+  $ts = $request["ts"];
   $res = setWorkingList(getUser(), "menu", $request['list'], $ts);
   if ($res)
   {
@@ -255,6 +255,8 @@ else if ($request['action'] == "setMenu")
   $msg = null;
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "keepTab", true);
+  $menu = getWorkingList(getUser(), "menu", $msg, $ts);
+  setResult($result, "menu", $menu);
   setTS($result, "menu", $ts);
 }
 else if ($request['action'] == "getRecipes")
@@ -311,6 +313,6 @@ else
   setResult($result, "error", "Unknown action: " . $request['action']);
 }
 
-
+header("Content-Type: application/json");
 echo json_encode($result);
 ?>

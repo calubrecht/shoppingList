@@ -2,14 +2,22 @@
 
 function getTS($db, $userId, $list)
 {
-  error_log('getTS ' . implode(',', array($userId, $list)));
-  return $db->queryOneColumn("SELECT lastUpdateTS from listTS Where userId=? and listName = ?", "lastUpdateTS", array($userId, $list));
+  $res =  $db->queryOneColumn("SELECT lastUpdate from listTS Where userId=? and listName = ?", "lastUpdate", array($userId, $list));
+  if ($res)
+  {
+    return $res;
+  }
+  return 0;
 }
 
-function updateTS($db, $userId, $list)
+function updateTS($db, $userId, $list, $ts)
 {
-  $db->execute("REPLACE INTO listTS (userId, listName, lastUpdateTS) VALUES (?, ?, NOW())", array($userId, $list));
-  return getTS($db, $userId, $list);
+  $res = $db->execute("REPLACE INTO listTS (userId, listName, lastUpdate) VALUES (?, ?,?)", array($userId, $list, $ts));
+  if (!$res)
+  {
+    error_log("Unable to update ts:" . $db->error);
+  }
+  return $ts;
 }
 
 function getWorkingList($user, $type, &$msg, &$ts)
@@ -112,7 +120,7 @@ function addItem($user, $type, $item, $id, $aisle, $order, &$ts)
     $db->execute(
       "INSERT INTO lists (userId, listType, orderKey, id, aisle, name, count, active, done) VALUES (?, ?, ?, ?, ?, ?, 1, 1, 0)",
       array($userId, $type, $order, $id, $aisle, $item));
-    $ts = updateTS($db, $userId, $type);
+    $ts = updateTS($db, $userId, $type, $ts+1);
   }
   catch (Exception $e)
   {
@@ -136,7 +144,7 @@ function deleteItem($user, $type, $id, &$ts)
     $db->execute("UPDATE lists SET orderKey = orderKey -1 WHERE userId=? and listType=? and orderKey >= ?", array($userId, $type, $order));
     $db->execute("DELETE FROM lists WHERE userId =? and listType=? and id =?",
       array($userId, $type, $id));
-    $ts = updateTS($db, $userId, $type);
+    $ts = updateTS($db, $userId, $type, $ts +1);
   }
   catch (Exception $e)
   {
@@ -155,8 +163,13 @@ function setWorkingList($user, $type, $list, &$ts)
   $currentIds = array();
   try
   {
-    error_log("setWorkingList for " . $user . " " . $userId . " ");
+    $oldts = $ts;
     $ts = getTS($db, $userId, $type);
+    if ($oldts != $ts && $ts)
+    {
+      $db->rollbackTransaction();
+      return "List out of date, reverting to current.";
+    }
     $db->execute("DELETE FROM lists WHERE userId = ? and listType=?", array($userId, $type)); 
     for ($i = 0; $i < count($list); $i++)
     {
@@ -185,8 +198,6 @@ function setWorkingList($user, $type, $list, &$ts)
        array_push($currentIds, $id);
        $res = $db->execute('INSERT INTO lists (userId, listType, orderKey, id, aisle, name, count, active, done) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', array($userId, $type, $i, $id, $aisle, $name, $count, $enabled, $done));
        $qry = 'INSERT INTO lists (userId, listType, orderKey, id, aisle, name, count, active, done) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'. implode(",", array($userId, $type, $i, $id, $aisle, $name, $count, $enabled, $done, 'nogus'));
-       $ts = updateTS($db, $userId, $type);
-       error_log("Updated ts, ts= " .$ts);
        if (!$res)
        {
          $db->rollbackTransaction();
@@ -202,6 +213,8 @@ function setWorkingList($user, $type, $list, &$ts)
          return "WTH?";
        }
     }
+    $ts = updateTS($db, $userId, $type, $ts+1);
+    error_log("Updated ts, ts= " .$ts);
   }
   catch (Exception $e)
   {
@@ -238,7 +251,7 @@ function saveDoneState($user, $request, &$ts)
        }
        return "Unable to save done state";
     }
-    $ts = updateTS($db, $userId, $type);
+    $ts = updateTS($db, $userId, $type, $ts +1);
   }
   catch (Exception $e)
   {
@@ -256,7 +269,7 @@ function saveEnabledState($user, $request, &$ts)
   $userId = getLoginInfo($user)['idusers'];
   try
   {
-    $ts = getTS($db, $userId, $type);
+    $ts = getTS($db, $userId, 'shop');
     $id = $request['id'];
     $enabledState = $request['enabledState'] ? 1 : 0;
     $res = $db->execute("UPDATE lists set active = ? where userId =? and listType='shop' and id=?", array($enabledState, $userId, $id)); 
@@ -273,7 +286,7 @@ function saveEnabledState($user, $request, &$ts)
        }
        return "Unable to save enabled state";
     }
-    $ts = updateTS($db, $userId, $type);
+    $ts = updateTS($db, $userId, 'shop', $ts +1);
   }
   catch (Exception $e)
   {
