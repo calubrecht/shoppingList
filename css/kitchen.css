@@ -215,6 +215,8 @@ span.dayLabel
 #printView .content
 {
   padding: 30px;
+  column-fill: auto;
+  column-count: 2;
 }
 
 #printView .content .printAisle
