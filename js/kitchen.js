@@ -281,14 +281,14 @@ function createPlannedItem(parentElement, id, name, aisle, number, enabled, done
         if (isBuild)
         {
           num.prop('disabled', !val);
-          if (loadedTabs[PLANNED_BUILD])
+          if (loadedTabs[PLANNED_BUILD] && this.isInit)
           {
             saveEnabledState(id, val);
           }
         }
         else
         {
-          if (loadedTabs[PLANNED_SHOP])
+          if (loadedTabs[PLANNED_SHOP] && this.isInit)
           {
             saveDoneState(id.substring(2), !val);
             if (items[planType].allDone())
@@ -300,7 +300,9 @@ function createPlannedItem(parentElement, id, name, aisle, number, enabled, done
         }
       }
     };
+  sliderModel.isInit = false;
   var slider = createSlider(box, id, sliderState, sliderModel);
+  sliderModel.isInit = true;
   slider.container = box;
   if (isBuild)
   {
@@ -527,7 +529,7 @@ function addItem(itemName, aisleName, close)
   lastAisle = aisleName;
   var aisleId = items[PLANNED_BUILD].aisleNames[aisleName];
   itemId = createPlannedItem($("#" + aisleId), null, itemName, aisleName,1, true, false, PLANNED_BUILD);
-  resolveSort();
+  resolveSort(false);
   post({"action":"addItem", "itemId":itemId, "itemName":itemName, "aisleName":aisleName, "order":items[PLANNED_BUILD].findOrder(itemId)}, handleCheckLogin);
   if (close)
   {
@@ -1203,7 +1205,7 @@ function forgotPassword()
   pickTab("password", true);
 }
 
-function resolveSort()
+function resolveSort(saveSort = true)
 {
   var aisleIdOrder = $('#aisleSorter').sortable("toArray");
   var aisles = {};
@@ -1217,7 +1219,10 @@ function resolveSort()
     aisles[aisleName] = aisle.sortable("toArray"); 
   }
   items[PLANNED_BUILD].setOrder(aisleOrder, aisles);
-  post({"action":"setShopList", "list":items[PLANNED_BUILD].toList(), "ts":tabTS["shop"]}, setBuildList);
+  if (saveSort)
+  {
+    post({"action":"setShopList", "list":items[PLANNED_BUILD].toList(), "ts":tabTS["shop"]}, setBuildList);
+  }
 }
 
 function setBuildList(data, statusCode)
