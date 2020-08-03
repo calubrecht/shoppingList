@@ -431,7 +431,6 @@ function hideAddDlg()
 {
   $("#modal").hide();
   $("#buildListTab").focus();
-  window.scrollTo(0,0);
   if (selectingFromRecipes)
   {
     selectingFromRecipes = false;
