@@ -215,7 +215,7 @@ span.dayLabel
 #printView .content
 {
   padding: 30px;
-  column-fill: auto;
+  column-fill: balance;
   column-count: 2;
 }
 
@@ -305,7 +305,7 @@ div.verticalScroll
   .heading {display:none;}
 
   body {background: white}
-  .modal  {background: white}
+  .modal  {background: white; position:initial}
 
   #printView
   {
@@ -313,6 +313,13 @@ div.verticalScroll
     border: none;
     padding-right: 10px;
     border-radius: 15px;
+    display: block;
+  }
+  #printView .content
+  {
+    padding: 30px;
+    column-fill: balance;
+    column-count: 2;
   }
 
 }
