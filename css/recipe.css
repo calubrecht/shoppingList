@@ -1,6 +1,8 @@
 div.recipeCard { width:374px; }
 div.recipeCard.editing {z-index:10}
 
+div#recipeRoot { font-family: Georgia }
+
 .cardHeader { display:flex; justify-content:flex-end}
 
 .cardTitle {background :white;
@@ -19,7 +21,6 @@ div.deleteWidget span.no {color:red; right:5px}
 div.deleteWidget span.delete {color:red; right:5px}
 
 div.editBtn {float:right; position:relative; width: 24px;  margin-top:2px; height:30px; clear:right; padding:2px}
-div.selectBtn {float:right; position:relative; width: 24px;  margin-top:2px; height:30px; clear:right; padding:2px}
 
 li.keyIngredient {color:#0000d0; font-size:20px }
 li.commonIngredient {color:#888888 }
