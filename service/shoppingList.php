@@ -26,7 +26,6 @@ function getTStamps($user)
   $userId = getLoginInfo($user)['idusers'];
   $db->beginTransaction();
   $res = $db->queryAll("SELECT listName,lastUpdate from listTS Where userId=?",  array($userId));
-  error_log("SELECT listName,lastUpdate from listTS Where userId=" .$userId);
   $tstamps = array();
   if ($res)
   {
