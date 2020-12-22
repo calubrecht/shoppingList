@@ -3,6 +3,16 @@ const PLANNED_SHOP = "shop";
 const PLANNED_MENU = "menu";
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 var activeTab = null;
+var tabOrder = {
+  "invalid": [null, null],
+  "login": [null, "register"],
+  "register": ["login", null],
+  "password": ["login", "register"],
+  "buildList": [null, "shop"],
+  "shop": ["buildList", "menu"],
+  "menu": ["shop", null],
+
+};
 
 var loadedTabs = {build: false, shop:false};
 var tabTS = {shop: "", menu:""};
@@ -629,8 +639,13 @@ function pickTab(tabName, clearMessage)
 
 function post(data, callback)
 {
+  postTo("", data, callback);
+}
+
+function postTo(urlAddon, data, callback)
+{
   var jsonData = JSON.stringify(data);
-  $.post('/service/', jsonData, callback, "json");
+  $.post('/service/' + urlAddon, jsonData, callback, "json");
 }
 
 function setListeners()
@@ -821,6 +836,37 @@ function setListeners()
             return false;
           }
   });
+  $.event.special.swipe.scrollSupressionThreshold = 200;
+  $(document).on('swipeleft',  moveTabLeft);
+  $(document).on('swiperight', moveTabRight);
+}
+
+function moveTabLeft()
+{
+  if (!activeTab)
+  {
+    return;
+  }
+  let newTab = tabOrder[activeTab][0];
+  if (!newTab)
+  {
+    return;
+  }
+  pickTab(newTab, true);
+}
+
+function moveTabRight()
+{
+  if (!activeTab)
+  {
+    return;
+  }
+  let newTab = tabOrder[activeTab][1];
+  if (!newTab)
+  {
+    return;
+  }
+  pickTab(newTab, true);
 }
 
 function addScript(scriptName)
@@ -1079,7 +1125,7 @@ function doPoll()
      skips--;
      return;
    }
-   post({"action":"tick"}, handlePoll);
+   postTo("tick", {"action":"tick"}, handlePoll);
 }
 
 function handlePoll(data)
