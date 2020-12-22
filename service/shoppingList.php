@@ -253,7 +253,7 @@ function saveDoneState($user, $request, &$ts)
   $userId = getLoginInfo($user)['idusers'];
   try
   {
-    $ts = getTS($db, $userId, $type);
+    $ts = getTS($db, $userId, 'shop');
     $id = $request['id'];
     $doneState = $request['doneState'] ? 1 : 0;
     $res = $db->execute("UPDATE lists set done = ? where userId =? and listType='shop' and id=?", array($doneState, $userId, $id)); 
@@ -270,7 +270,7 @@ function saveDoneState($user, $request, &$ts)
        }
        return "Unable to save done state";
     }
-    $ts = updateTS($db, $userId, $type, $ts +1);
+    $ts = updateTS($db, $userId, 'shop', $ts +1);
   }
   catch (Exception $e)
   {
