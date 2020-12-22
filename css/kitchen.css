@@ -93,6 +93,11 @@ div.tabBody.narrow {width:500px}
 
 #buildListTab:focus {outline:none;}
 #menuTab:focus {outline:none;}
+.modalDialog:focus {outline:none;}
+#body:focus {outline:none;}
+.ui-page:focus {outline:none;}
+
+.ui-loader {display:none}
 
 .firstColumn {width:30%; float: left; text-align:right; clear:left}
 .secondColumn {width:65%; float: left; margin: 0px 0px 8px 10px;  }
