@@ -836,13 +836,17 @@ function setListeners()
             return false;
           }
   });
-  $.event.special.swipe.scrollSupressionThreshold = 200;
+  $.event.special.swipe.scrollSupressionThreshold = 800;
   $(document).on('swipeleft',  moveTabLeft);
   $(document).on('swiperight', moveTabRight);
 }
 
 function moveTabLeft()
 {
+  if ($('#modal').is(":visible"))
+  {
+    return;
+  }
   if (!activeTab)
   {
     return;
@@ -857,6 +861,10 @@ function moveTabLeft()
 
 function moveTabRight()
 {
+  if ($('#modal').is(":visible"))
+  {
+    return;
+  }
   if (!activeTab)
   {
     return;
