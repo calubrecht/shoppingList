@@ -38,6 +38,7 @@
        <span class="tab" id="buildList" onclick="pickTab('buildList', true)">Build List</span>
        <span class="tab" id="shop" onclick="pickTab('shop', true)">Shop</span>
        <span class="tab" id="menu" onclick="pickTab('menu', true)">Menu</span>
+       <span class="tab" id="settings" onclick="pickTab('settings', true)">Settings</span>
        <span class="tab" id="logout" onclick="logout()">Logout</span>
      </div>
      <div id="loginTab" class="tabBody narrow">
@@ -83,6 +84,23 @@
         <div class="error" id="menuError"></div>
         <div class="msg" id="menuMsg"></div>
         <div id="menuBody"></div>
+     </div>
+     <div id="settingsTab" class="tabBody">
+        <div class="error" id="settingsError"></div>
+        <div class="msg" id="settingsMsg"></div>
+        <div id="settingsBody">
+          <div id="listNames">
+            <label>Available Lists</label>
+            <div class="listNamesWidget">
+              <select id="listNameBox" Name="ListNameBox" Size="10" multiple>
+              </select>
+              <div class="buttons">
+                 <button onclick="showAddListDlg()">Add List</button>
+                 <button id="removeListButton" onclick="removeSelectedList()">Remove List</button>
+              </div>
+            </div>
+          </div>
+        </div>
      </div>
   </div>
   <div id="modal" class="modal">
@@ -132,6 +150,17 @@
         <button id="addMenuItemButton">Add</button>
         <button id="selectMenuItemButton">Select...</button>
         <button id="addAndCloseMenuItemButton">Add and Close</button>
+      </div>
+    </div>
+    <div class="createDialog modalDialog" id="addListDialog">
+      <span class="close">&times;</span>
+      <div class='content'>
+        <div class="error" id="createListError"></div>
+        <div class="firstColumn">New List: </div><input class="secondColumn" type="text" name="listName">
+        <div class="break"></div>
+      </div>
+      <div>
+        <button id="addListAndCloseButton">Add And Close</button>
       </div>
     </div>
     <div class='modalDialog' id='printView' tabindex=0>

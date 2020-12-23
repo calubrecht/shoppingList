@@ -138,6 +138,44 @@ span.dayLabel
     margin: 2px;
 }
 
+div#listNames {
+  margin:auto;
+  width:320px;
+}
+
+div#listNames div.listNamesWidget {
+  overflow:auto;
+  padding:5px;
+}
+
+div.clear
+{
+  clear:both;
+}
+
+
+#settingsBody div select
+{
+  display:block;
+  float:left;
+  width:150px;
+  margin:5px;
+}
+
+#settingsBody div div.buttons
+{
+  float:left;
+  padding-top: 50px;
+  padding-left: 10px;
+}
+
+#settingsBody div div.buttons button
+{
+  display:block;
+  margin-top:5px;
+}
+
+
 .modal
 {
   display: none;

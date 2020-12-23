@@ -10,11 +10,13 @@ var tabOrder = {
   "password": ["login", "register"],
   "buildList": [null, "shop"],
   "shop": ["buildList", "menu"],
-  "menu": ["shop", null],
+  "menu": ["shop", "settings"],
+  "settings": ["menu", null],
 
 };
 
 var currentList = "Default";
+var allLists = {};
 var loadedTabs = {build: false, shop:false};
 var listsReady = false;
 var tabTS = {shop: "", menu:""};
@@ -452,6 +454,11 @@ function hideAddMenuItemDlg()
   $("#menuTab").focus();
 }
 
+function hideAddListDlg()
+{
+  $("#modal").hide();
+}
+
 var lastAisle = null;
 function fillAisleSelect()
 {
@@ -489,6 +496,14 @@ function showAddMenuItemDlg()
   $('.modalDialog').hide();
   $('#createMenuItemDialog').show();
   $("#modal").find("[name='menuItemName']").val('').focus();
+}
+function showAddListDlg()
+{
+  $("#createListError").text("");
+  $("#modal").show();
+  $('.modalDialog').hide();
+  $('#addListDialog').show();
+  $("#modal").find("[name='listName']").val('').focus();
 }
 
 function showPrintableView(item_collection)
@@ -727,6 +742,13 @@ function setListeners()
             return false;
           }
   });
+  $("#addListAndCloseButton").click(function() {addList($("#modal").find("[name='listName']").val(), true); });
+  $("#addListAndCloseButton").keypress(function (e) {
+      if (e.which == 13) {
+            $('#addListAndCloseButton').click();
+            return false;
+          }
+  });
   $("#createItemDialog").keypress(function (e) {
       if (e.which == 13) {
             $('#addItemButton').click();
@@ -742,6 +764,12 @@ function setListeners()
   $("#createMenuItemDialog").keypress(function (e) {
       if (e.which == 13) {
             $('#addMenuItemButton').click();
+            return false;
+          }
+  });
+  $("#addListDialog").keypress(function (e) {
+      if (e.which == 13) {
+            $('#addListAndCloseButton').click();
             return false;
           }
   });
@@ -1213,7 +1241,7 @@ function clearMessages()
 function setNotLoggedIn()
 {
   showTabs(["login", "register"]);
-  hideTabs(["buildList", "shop", "logout", "password", "menu"]);
+  hideTabs(["buildList", "shop", "logout", "password", "menu", "settings"]);
   pickTab("login", false);
   if (pollTimer)
   {
@@ -1223,9 +1251,10 @@ function setNotLoggedIn()
 
 function setLoggedIn()
 {
-  showTabs(["buildList", "shop", "menu","logout"]);
+  showTabs(["buildList", "shop", "menu","logout", "settings"]);
   hideTabs(["login", "password", "register"]);
-  pickTab("buildList", false);
+  //pickTab("buildList", false);
+  pickTab("settings", false);
   post({"action":"getListNames"}, populateListNames);
   if (!pollTimer)
   {
@@ -1454,26 +1483,107 @@ function changeListName(ev, ui)
   post({"action":"getShopList", "listName":currentList}, setBuildList);
 }
 
+function addListToWidgets(listName)
+{
+  if (allLists.hasOwnProperty(listName))
+  {
+    return;
+  }
+  let select = $("#listSelect");
+  let listBox = $("#listNameBox");
+  $("<option>" + listName + "</option>").appendTo(select);
+  $("<option>" + listName + "</option>").appendTo(listBox);
+  allLists[listName] = 1;
+}
 
 function populateListNames(data, statusCode)
 {
-  let select = $("#listSelect");
   if (data["lists"].length == 1)
   {
     select.hide();
-    return;
   }
-  $("<option selected>Default</option>").appendTo(select);
-  data["lists"].forEach(listName =>
-    {
-      if (listName == "Default")
-      {
-        return;
-      }
-      $("<option>" + listName + "</option>").appendTo(select);
-    });
+  data["lists"].forEach(addListToWidgets);
   $("#listSelect").selectmenu({
     select: changeListName
   });
    listsReady = true;
+}
+
+function validateListName(listName)
+{
+  if (allLists.hasOwnProperty(listName))
+  {
+    $("#createListError").text("The list \"" + listName +"\" already exists");
+    return false;
+  }
+  if (listName.includes(":"))
+  {
+    $("#createListError").text("List names cannot contain the character :");
+    return false;
+  }
+  return true;;
+}
+
+function addList(listName)
+{
+  if (!validateListName(listName))
+  {
+    return;
+  }
+  addListToWidgets(listName);
+  $("#settingsTab").children('error').text('');
+  hideAddListDlg();
+  if (Object.keys(allLists).length >1)
+  {
+    $("#listSelect-button").show();
+  }
+  $("#listSelect").selectmenu("refresh");
+}
+
+function removeSelectedList()
+{
+  let listBox = $("#listNameBox");
+  let selectedLists = listBox.find(":selected");
+  selectedLists.each( function(idx)  {
+    removeList($(this).text());});
+  $("#listSelect").selectmenu("refresh");
+}
+
+function removeList(listName)
+{
+  if (listName == currentList)
+  {
+    $("#settingsTab").children('error').text('Cannot remove the currently selected list');
+    return;
+  }
+  if (listName == "Default")
+  {
+    $("#settingsTab").children('error').text('Cannot remove the Default list');
+    return;
+  }
+  delete allLists[listName];
+  let select = $("#listSelect");
+  let listBox = $("#listNameBox");
+  select.children().each(function (idx) 
+    {
+      let t = $(this).text();
+      if (t  == listName)
+      {
+        $(this).remove();
+      }
+    }
+  );
+  listBox.children().each(function (idx) 
+    {
+      let t = $(this).text();
+      if (t  == listName)
+      {
+        $(this).remove();
+      }
+    }
+  );
+  if (Object.keys(allLists).length <2)
+  {
+    $("#listSelect-button").hide();
+  }
 }
