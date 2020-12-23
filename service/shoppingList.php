@@ -96,7 +96,7 @@ function getWorkingList($user, $type, $name, &$msg, &$ts)
 
 function getMenu($user, &$msg, &$ts)
 {
-  return getWorkingList($user, "menu", "default", $msg, $ts);
+  return getWorkingList($user, "menu", "Default", $msg, $ts);
 }
 
 function validateName($name)
@@ -155,7 +155,7 @@ function addItem($user, $type, $listName, $item, $id, $aisle, $order, &$ts)
   $db->commitTransaction();
 }
 
-function deleteItem($user, $type, $id, &$ts)
+function deleteItem($user, $type, $listName, $id, &$ts)
 {
   global $db;
   $db->beginTransaction();
@@ -163,22 +163,22 @@ function deleteItem($user, $type, $id, &$ts)
   try
   {
     $ts = getTS($db, $userId, $type);
-    $order = $db->queryOneColumn("SELECT orderKey FROM lists WHERE userId=? and listType=? and id = ?", "orderKey", array($userId, $type, $id));
-    $db->execute("UPDATE lists SET orderKey = orderKey -1 WHERE userId=? and listType=? and orderKey >= ?", array($userId, $type, $order));
-    $db->execute("DELETE FROM lists WHERE userId =? and listType=? and id =?",
-      array($userId, $type, $id));
+    $order = $db->queryOneColumn("SELECT orderKey FROM lists WHERE userId=? and listType=? and id = ? and listName = ?", "orderKey", array($userId, $type, $id, $listName));
+    $db->execute("UPDATE lists SET orderKey = orderKey -1 WHERE userId=? and listType=? and orderKey >= ? and listName = ?", array($userId, $type, $order, $listName));
+    $db->execute("DELETE FROM lists WHERE userId =? and listType=? and id =? and listName = ?",
+      array($userId, $type, $id, $listName));
     $ts = updateTS($db, $userId, $type, $ts +1);
   }
   catch (Exception $e)
   {
     $db->rollbackTransaction();
-    error_log("Unable to add item " . $item . " - " . $e->getMessage());
-    return "Failed to add item"; 
+    error_log("Unable to delete item " . $item . " - " . $e->getMessage());
+    return "Failed to delete item"; 
   } 
   $db->commitTransaction();
 }
 
-function setWorkingList($user, $type, $list, &$ts)
+function setWorkingList($user, $type, $listName, $list, &$ts)
 {
   global $db;
   $db->beginTransaction();
@@ -193,7 +193,7 @@ function setWorkingList($user, $type, $list, &$ts)
       $db->rollbackTransaction();
       return "List out of date, reverting to current.";
     }
-    $db->execute("DELETE FROM lists WHERE userId = ? and listType=?", array($userId, $type)); 
+    $db->execute("DELETE FROM lists WHERE userId = ? and listType=? and listName=?", array($userId, $type, $listName)); 
     for ($i = 0; $i < count($list); $i++)
     {
        $item = $list[$i];
@@ -219,8 +219,8 @@ function setWorkingList($user, $type, $list, &$ts)
        }
        $id = safeID($id, $currentIds);
        array_push($currentIds, $id);
-       $res = $db->execute('INSERT INTO lists (userId, listType, orderKey, id, aisle, name, count, active, done) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', array($userId, $type, $i, $id, $aisle, $name, $count, $enabled, $done));
-       $qry = 'INSERT INTO lists (userId, listType, orderKey, id, aisle, name, count, active, done) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'. implode(",", array($userId, $type, $i, $id, $aisle, $name, $count, $enabled, $done, 'nogus'));
+       $res = $db->execute('INSERT INTO lists (userId, listType, listName, orderKey, id, aisle, name, count, active, done) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', array($userId, $type, $listName, $i, $id, $aisle, $name, $count, $enabled, $done));
+       $qry = 'INSERT INTO lists (userId, listType, listName, orderKey, id, aisle, name, count, active, done) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'. implode(",", array($userId, $type, $listName, $i, $id, $aisle, $name, $count, $enabled, $done, 'nogus'));
        if (!$res)
        {
          $db->rollbackTransaction();
@@ -260,7 +260,8 @@ function saveDoneState($user, $request, &$ts)
     $ts = getTS($db, $userId, 'shop');
     $id = $request['id'];
     $doneState = $request['doneState'] ? 1 : 0;
-    $res = $db->execute("UPDATE lists set done = ? where userId =? and listType='shop' and id=?", array($doneState, $userId, $id)); 
+    $listName = $request['listName'];
+    $res = $db->execute("UPDATE lists set done = ? where userId =? and listType='shop' and id=? and listName=?", array($doneState, $userId, $id, $listName)); 
     if (!$res)
     {
        $db->rollbackTransaction();
@@ -295,7 +296,8 @@ function saveEnabledState($user, $request, &$ts)
     $ts = getTS($db, $userId, 'shop');
     $id = $request['id'];
     $enabledState = $request['enabledState'] ? 1 : 0;
-    $res = $db->execute("UPDATE lists set active = ? where userId =? and listType='shop' and id=?", array($enabledState, $userId, $id)); 
+    $listName = $request['listName'];
+    $res = $db->execute("UPDATE lists set active = ? where userId =? and listType='shop' and id=? and listName=?", array($enabledState, $userId, $id, $listName)); 
     if (!$res)
     {
        $db->rollbackTransaction();
@@ -329,7 +331,8 @@ function saveCount($user, $request)
   {
     $id = $request['id'];
     $count = $request['count'];
-    $res = $db->execute("UPDATE lists set count = ? where userId =? and listType='shop' and id=?", array($count, $userId, $id)); 
+    $listName = $request['listName'];
+    $res = $db->execute("UPDATE lists set count = ? where userId =? and listType='shop' and id=? and listName=?", array($count, $userId, $id, $listName)); 
     if (!$res)
     {
        $db->rollbackTransaction();
@@ -353,14 +356,14 @@ function saveCount($user, $request)
   $db->commitTransaction();
 }
 
-function resetDoneState($user, $type)
+function resetDoneState($user, $type, $listName)
 {
   global $db;
   $db->beginTransaction();
   $userId = getLoginInfo($user)['idusers'];
   try
   {
-    $res = $db->execute("UPDATE lists set done = 0 where userId =? and listType=?", array($userId, $type)); 
+    $res = $db->execute("UPDATE lists set done = 0 where userId =? and listType=? and listName=?", array($userId, $type, $listName)); 
     if (!$res)
     {
        $db->rollbackTransaction();

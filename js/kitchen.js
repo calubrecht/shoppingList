@@ -14,7 +14,7 @@ var tabOrder = {
 
 };
 
-var currentList = "default";
+var currentList = "Default";
 var loadedTabs = {build: false, shop:false};
 var listsReady = false;
 var tabTS = {shop: "", menu:""};
@@ -323,7 +323,7 @@ function createPlannedItem(parentElement, id, name, aisle, number, enabled, done
       {
         items[planType].remove(id);
         box.remove();
-        post({"action":"deleteItem", "itemId":id}, handleCheckLogin);
+        post({"action":"deleteItem", "itemId":id, "listName":currentList}, handleCheckLogin);
       }).appendTo(box);
   }
   return id;
@@ -1006,28 +1006,28 @@ function doResetPassword()
 function saveList(list)
 {
   post(
-    {"action":"saveList", "list": list.toList()},
+    {"action":"saveList", "listName":currentList, "list": list.toList()},
     handleCheckLogin);
 }
 
 function saveDoneState(id, val)
 {
   post(
-    {"action":"saveDoneState", "id": id, "doneState": val},
+    {"action":"saveDoneState", "listName":currentList,"id": id, "doneState": val},
     handleCheckLogin);
 }
 
 function saveCount(id, val)
 {
   post(
-    {"action":"saveCount", "id": id, "count": val},
+    {"action":"saveCount", "listName":currentList, "id": id, "count": val},
     handleCheckLogin);
 }
 
 function saveEnabledState(id, val)
 {
   post(
-    {"action":"saveEnabledState", "id": id, "enabledState": val},
+    {"action":"saveEnabledState", "listName":currentList, "id": id, "enabledState": val},
     handleCheckLogin);
 }
 
@@ -1273,7 +1273,7 @@ function resolveSort(saveSort = true)
   items[PLANNED_BUILD].setOrder(aisleOrder, aisles);
   if (saveSort)
   {
-    post({"action":"setShopList", "list":items[PLANNED_BUILD].toList(), "ts":tabTS["shop"]}, setBuildList);
+    post({"action":"setShopList", "listName":currentList, "list":items[PLANNED_BUILD].toList(), "ts":tabTS["shop"]}, setBuildList);
   }
 }
 
@@ -1359,7 +1359,7 @@ function setShopList(data, statusCode)
 
   var buttonPane = $("<div></div>").addClass("buttonPane").appendTo("#shopListBody");
   $("<button>Reset</button>").click( function() { 
-      post({"action":"resetDoneState"}, setShopList);}).appendTo(buttonPane);
+      post({"action":"resetDoneState", "listName":currentList}, setShopList);}).appendTo(buttonPane);
   $("<button>Printable View</button>").click( function() { showPrintableView(items[PLANNED_SHOP]); }).appendTo(buttonPane);
   loadedTabs[PLANNED_SHOP] = true;
 }
@@ -1463,10 +1463,10 @@ function populateListNames(data, statusCode)
     select.hide();
     return;
   }
-  $("<option selected>default</option>").appendTo(select);
+  $("<option selected>Default</option>").appendTo(select);
   data["lists"].forEach(listName =>
     {
-      if (listName == "default")
+      if (listName == "Default")
       {
         return;
       }

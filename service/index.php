@@ -167,20 +167,20 @@ else if ($request['action'] == "getMenu")
 else if ($request['action'] == "saveList")
 {
   $ts = null;
-  $res = setWorkingList(getUser(), "saved",$request['list'], $ts);
+  $res = setWorkingList(getUser(), "saved", $request["listName"], $request['list'], $ts);
   if ($res)
   {
     setResult($result, "error", $res);
   }
-  $res = setWorkingList(getUser(), "shop", $request['list'], $ts);
+  $res = setWorkingList(getUser(), "shop", $request["listName"], $request['list'], $ts);
   setResult($result, "isLoggedIn", isLoggedIn());
   setTS($result, "shop", $ts);
 }
 else if ($request['action'] == "setShopList")
 {
   $ts = $request["ts"];
-  $listName = "default";
-  $res = setWorkingList(getUser(), "shop", $request['list'], $ts);
+  $listName = $request["listName"];
+  $res = setWorkingList(getUser(), "shop", $listName, $request['list'], $ts);
   if ($res)
   {
     setResult($result, "error", $res);
@@ -207,7 +207,7 @@ else if ($request['action'] == "addItem")
 else if ($request['action'] == "deleteItem")
 {
   $ts = null;
-  $res = deleteItem(getUser(), "shop", $request["itemId"], $ts);
+  $res = deleteItem(getUser(), "shop", $request["listName"], $request["itemId"], $ts);
   if ($res)
   {
     setResult($result, "error", $res);
@@ -243,9 +243,9 @@ else if ($request['action'] == "saveCount")
 else if ($request['action'] == "resetDoneState")
 {
   $ts = null;
-  $listName = "default";
-  resetDoneState(getUser(), "saved");
-  resetDoneState(getUser(), "shop");
+  $listName = $request["listName"];
+  resetDoneState(getUser(), "saved", $listName);
+  resetDoneState(getUser(), "shop", $listName);
   $msg = null;
   $ts = null;
   $workingList = getWorkingList(getUser(), "shop", $listName, $msg, $ts);
@@ -256,7 +256,7 @@ else if ($request['action'] == "resetDoneState")
 else if ($request['action'] == "setMenu")
 {
   $ts = $request["ts"];
-  $res = setWorkingList(getUser(), "menu", $request['list'], $ts);
+  $res = setWorkingList(getUser(), "menu", "Default", $request['list'], $ts);
   if ($res)
   {
     setResult($result, "error", $res);
