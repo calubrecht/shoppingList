@@ -127,7 +127,8 @@ else if ($request['action'] == "getWorkingList")
 {
   $msg = '';
   $ts = null;
-  $workingList = getWorkingList(getUser(), "saved", $msg, $ts);
+  $listName = $request["listName"];
+  $workingList = getWorkingList(getUser(), "saved", $listName, $msg, $ts);
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "workingList", $workingList);
   setTS($result, "work", $ts);
@@ -140,7 +141,8 @@ else if ($request['action'] == "getShopList")
 {
   $msg = '';
   $ts = null;
-  $workingList = getWorkingList(getUser(), "shop", $msg, $ts);
+  $listName = $request["listName"];
+  $workingList = getWorkingList(getUser(), "shop", $listName, $msg, $ts);
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "workingList", $workingList);
   setTS($result, "shop", $ts);
@@ -153,7 +155,7 @@ else if ($request['action'] == "getMenu")
 {
   $msg = '';
   $ts = null;
-  $workingList = getWorkingList(getUser(), "menu", $msg, $ts);
+  $workingList = getMenu(getUser(), $msg, $ts);
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "menu", $workingList);
   setTS($result, "menu", $ts);
@@ -177,6 +179,7 @@ else if ($request['action'] == "saveList")
 else if ($request['action'] == "setShopList")
 {
   $ts = $request["ts"];
+  $listName = "default";
   $res = setWorkingList(getUser(), "shop", $request['list'], $ts);
   if ($res)
   {
@@ -184,7 +187,7 @@ else if ($request['action'] == "setShopList")
   }
   $msg = null;
   $ts = null;
-  $workingList = getWorkingList(getUser(), "shop", $msg, $ts);
+  $workingList = getWorkingList(getUser(), "shop", $listName, $msg, $ts);
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "workingList", $workingList);
   setTS($result, "shop", $ts);
@@ -192,7 +195,7 @@ else if ($request['action'] == "setShopList")
 else if ($request['action'] == "addItem")
 {
   $ts = null;
-  $res = addItem(getUser(), "shop", $request["itemName"], $request["itemId"], $request["aisleName"], $request["order"], $ts);
+  $res = addItem(getUser(), "shop", $request["listName"], $request["itemName"], $request["itemId"], $request["aisleName"], $request["order"], $ts);
   if ($res)
   {
     setResult($result, "error", $res);
@@ -240,11 +243,12 @@ else if ($request['action'] == "saveCount")
 else if ($request['action'] == "resetDoneState")
 {
   $ts = null;
+  $listName = "default";
   resetDoneState(getUser(), "saved");
   resetDoneState(getUser(), "shop");
   $msg = null;
   $ts = null;
-  $workingList = getWorkingList(getUser(), "shop", $msg, $ts);
+  $workingList = getWorkingList(getUser(), "shop", $listName, $msg, $ts);
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "workingList", $workingList);
   setTS($result, "shop", $ts);
@@ -260,7 +264,7 @@ else if ($request['action'] == "setMenu")
   $msg = null;
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "keepTab", true);
-  $menu = getWorkingList(getUser(), "menu", $msg, $ts);
+  $menu = getMenu(getUser(), $msg, $ts);
   setResult($result, "menu", $menu);
   setTS($result, "menu", $ts);
 }
@@ -310,6 +314,12 @@ else if ($request['action'] == "setOrder")
   {
     setResult($result, "error", $res);
   }
+  setResult($result, "isLoggedIn", isLoggedIn());
+}
+else if ($request['action'] == "getListNames")
+{
+  $res = getListNames(getUser()); 
+  setResult($result, "lists", $res);
   setResult($result, "isLoggedIn", isLoggedIn());
 }
 else

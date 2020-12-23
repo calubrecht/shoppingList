@@ -38,7 +38,7 @@ function getTStamps($user)
   return $tstamps;
 }
 
-function getWorkingList($user, $type, &$msg, &$ts)
+function getWorkingList($user, $type, $name, &$msg, &$ts)
 {
   global $db;
   $db->beginTransaction();
@@ -47,7 +47,7 @@ function getWorkingList($user, $type, &$msg, &$ts)
   try
   {
     $ts = getTS($db, $id, $type);
-    $res = $db->queryAll("SELECT id, name, aisle, count, active, done FROM lists WHERE userId = ? and listType = ? ORDER by orderKey ASC", array($id, $type));
+    $res = $db->queryAll("SELECT id, name, aisle, count, active, done FROM lists WHERE userId = ? and listType = ? and listName= ? ORDER by orderKey ASC", array($id, $type, $name));
     if ($res)
     {
       foreach ($res as $row)
@@ -62,7 +62,7 @@ function getWorkingList($user, $type, &$msg, &$ts)
       $db->commitTransaction();
       if ($type == 'shop')
       {
-        return getWorkingList($user, "saved", $msg, $ts);
+        return getWorkingList($user, "saved", $name, $msg, $ts);
       }
       if ($type == 'menu')
       {
@@ -94,6 +94,11 @@ function getWorkingList($user, $type, &$msg, &$ts)
   
 }
 
+function getMenu($user, &$msg, &$ts)
+{
+  return getWorkingList($user, "menu", "default", $msg, $ts);
+}
+
 function validateName($name)
 {
   if (!preg_match('/[ -~]+$/', $name))
@@ -121,7 +126,7 @@ function safeID($id, $currentIds)
   return $idToUse;
 }
 
-function addItem($user, $type, $item, $id, $aisle, $order, &$ts)
+function addItem($user, $type, $listName, $item, $id, $aisle, $order, &$ts)
 {
   global $db;
   $db->beginTransaction();
@@ -134,10 +139,10 @@ function addItem($user, $type, $item, $id, $aisle, $order, &$ts)
   {
     $ts = getTS($db, $userId, $type);
     // Compare TS
-    $db->execute("UPDATE lists SET orderKey = orderKey +1 WHERE userId=? and listType=? and orderKey >= ?", array($userId, $type, $order));
+    $db->execute("UPDATE lists SET orderKey = orderKey +1 WHERE userId=? and listType=? and orderKey >= ? and listName= ?", array($userId, $type, $order, $listName));
     $db->execute(
-      "INSERT INTO lists (userId, listType, orderKey, id, aisle, name, count, active, done) VALUES (?, ?, ?, ?, ?, ?, 1, 1, 0)",
-      array($userId, $type, $order, $id, $aisle, $item));
+      "INSERT INTO lists (userId, listType, listName, orderKey, id, aisle, name, count, active, done) VALUES (?, ?, ?, ?, ?, ?, ?, 1, 1, 0)",
+      array($userId, $type, $listName, $order, $id, $aisle, $item));
     $ts = updateTS($db, $userId, $type, $ts+1);
   }
   catch (Exception $e)
@@ -413,6 +418,26 @@ function getRecipes($user)
   }
   $db->rollbackTransaction();
   return $list;
+}
+
+function getListNames($user)
+{
+  global $db;
+  $db->beginTransaction();
+  $id = getLoginInfo($user)['idusers'];
+  try
+  {
+    $res = $db->queryAll("SELECT distinct listName FROM lists WHERE userId = ? ORDER BY listName ASC", $id);
+    return array_map( function($entry) { return $entry["listName"];}, $res);
+  }
+  catch (Exception $e)
+  {
+    $db->rollbackTransaction();
+    error_log("Unable to fetch listNames for user " . $user . " - " . $e->getMessage());
+    return array();
+  }
+  $db->rollbackTransaction();
+  return array();
 }
 
 function setOrder($user, $orderedItems)

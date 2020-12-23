@@ -14,7 +14,9 @@ var tabOrder = {
 
 };
 
+var currentList = "default";
 var loadedTabs = {build: false, shop:false};
+var listsReady = false;
 var tabTS = {shop: "", menu:""};
 var selectingFromRecipes = false;
 
@@ -391,17 +393,14 @@ function commitAisleNameChange(element)
   var newName = element.text().trim();
   if (newName == editingName)
   {
-    console.log('Noting to do here');
     revertAisleName(element);
     return;
   }
   else if (newName == '' || (newName in items[PLANNED_SHOP].aisleNames))
   {
-    console.log('Invalid name')
     revertAisleName(element);
     return;
   }
-  console.log('Changing ' + editingName + ' to ' + element.text());
   element.text(newName);
   items[PLANNED_BUILD].renameAisle(editingName, newName);
   $("#buildListTab").focus();
@@ -413,7 +412,6 @@ function revertAisleName(element)
   element.text(editingName);
   $("#buildListTab").focus();
   $("#aisleSorter").sortable('enable'); 
-  console.log('Reverting aisle name');
 }
 
 function linkAisles()
@@ -539,7 +537,7 @@ function addItem(itemName, aisleName, close)
   var aisleId = items[PLANNED_BUILD].aisleNames[aisleName];
   itemId = createPlannedItem($("#" + aisleId), null, itemName, aisleName,1, true, false, PLANNED_BUILD);
   resolveSort(false);
-  post({"action":"addItem", "itemId":itemId, "itemName":itemName, "aisleName":aisleName, "order":items[PLANNED_BUILD].findOrder(itemId)}, handleCheckLogin);
+  post({"action":"addItem", "listName":currentList, "itemId":itemId, "itemName":itemName, "aisleName":aisleName, "order":items[PLANNED_BUILD].findOrder(itemId)}, handleCheckLogin);
   if (close)
   {
     hideAddDlg();
@@ -623,12 +621,12 @@ function pickTab(tabName, clearMessage)
   {
      if (previousTab == "invalid" || previousTab == "shop" || previousTab == "login" || previousTab == "register" ) 
      {
-       post({"action":"getShopList"}, setBuildList);
+       post({"action":"getShopList", "listName":currentList}, setBuildList);
      }
   }
   if (tabName == "shop")
   {
-    post({"action":"getShopList"}, setShopList);
+    post({"action":"getShopList", "listName":currentList}, setShopList);
   }
   if (tabName == 'menu')
   {
@@ -836,9 +834,9 @@ function setListeners()
             return false;
           }
   });
-  $.event.special.swipe.scrollSupressionThreshold = 800;
-  $(document).on('swipeleft',  moveTabLeft);
-  $(document).on('swiperight', moveTabRight);
+  $("#body").hammer().
+    bind("swipeleft", moveTabLeft).
+    bind("swiperight", moveTabRight);
 }
 
 function moveTabLeft()
@@ -1035,7 +1033,7 @@ function saveEnabledState(id, val)
 
 function revertBuildList()
 {
-  post({"action":"getWorkingList"}, setBuildList);
+  post({"action":"getWorkingList", "listName":currentList}, setBuildList);
 }
 
 function handleDoReset(data, statusCode)
@@ -1143,7 +1141,7 @@ function handlePoll(data)
    {
      if (data["tock"]["shop"] != tabTS["shop"])
      {
-       post({"action":"getShopList"}, setBuildList);
+       post({"action":"getShopList", "listName":currentList}, setBuildList);
        updates++;
      }
    }
@@ -1151,7 +1149,7 @@ function handlePoll(data)
    {
      if (data["tock"]["shop"] != tabTS["shop"])
      {
-       post({"action":"getShopList"}, setShopList);
+       post({"action":"getShopList", "listName":currentList}, setShopList);
        updates++;
      }
    }
@@ -1228,6 +1226,7 @@ function setLoggedIn()
   showTabs(["buildList", "shop", "menu","logout"]);
   hideTabs(["login", "password", "register"]);
   pickTab("buildList", false);
+  post({"action":"getListNames"}, populateListNames);
   if (!pollTimer)
   {
      pollTimer = window.setInterval(doPoll, 1000);
@@ -1323,6 +1322,10 @@ function setBuildList(data, statusCode)
   loadedTabs[PLANNED_BUILD] = true;
   $("#buildListTab").focus();
   window.scrollTo(0,0);
+  if (listsReady)
+  {
+    $("#listSelect").selectmenu("enable");
+  }
 }
 
 function setShopList(data, statusCode)
@@ -1437,3 +1440,40 @@ function setMenu(data, statusCode)
   $("#menuTab").focus();
 }
 
+function changeListName(ev, ui)
+{
+  let newListName = ui.item.label;
+  console.log("Select " + ev + " - " + newListName)
+  if (newListName == currentList)
+  {
+    console.log("Nothing to do ");
+    return;
+  }
+  currentList = newListName;
+  $("#listSelect").selectmenu("disable");
+  post({"action":"getShopList", "listName":currentList}, setBuildList);
+}
+
+
+function populateListNames(data, statusCode)
+{
+  let select = $("#listSelect");
+  if (data["lists"].length == 1)
+  {
+    select.hide();
+    return;
+  }
+  $("<option selected>default</option>").appendTo(select);
+  data["lists"].forEach(listName =>
+    {
+      if (listName == "default")
+      {
+        return;
+      }
+      $("<option>" + listName + "</option>").appendTo(select);
+    });
+  $("#listSelect").selectmenu({
+    select: changeListName
+  });
+   listsReady = true;
+}
