@@ -22,7 +22,7 @@ var listsReady = false;
 var selectMenuInitted = false;
 var tabTS = {shop: "", menu:""};
 var selectingFromRecipes = false;
-var VERSION="1.0.0.15";
+var VERSION="1.1.0;"
 
 var pollTimer = null;
 
@@ -922,7 +922,6 @@ function init()
       if (j.version != VERSION)
       {
         console.log("New version available. Refreshing Cache");
-        window.alert("Boom");
         if (window.caches) {
           window.caches.keys().then(function(names) {
             for (let name of names) caches.delete(name);
