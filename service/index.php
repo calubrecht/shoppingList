@@ -192,6 +192,29 @@ else if ($request['action'] == "setShopList")
   setResult($result, "workingList", $workingList);
   setTS($result, "shop", $ts);
 }
+else if ($request['action'] == "revertWorkingList")
+{
+  $msg = '';
+  $ts = null;
+  $listName = $request["listName"];
+  $workingList = getWorkingList(getUser(), "saved", $listName, $msg, $ts);
+  $workingListArrays = array_map(
+    function($item) {return array($item["id"], $item["name"], $item["aisle"], $item["count"], $item["active"], $item["done"]  );},
+    $workingList);
+  $ts = $request["ts"];
+  $res = setWorkingList(getUser(), "shop", $listName, $workingListArrays, $ts);
+  if ($res)
+  {
+    setResult($result, "error", $res);
+  }
+  setResult($result, "isLoggedIn", isLoggedIn());
+  setResult($result, "workingList", $workingList);
+  setTS($result, "work", $ts);
+  if ($msg)
+  {
+    setResult($result, "msg", $msg);
+  }
+}
 else if ($request['action'] == "addItem")
 {
   $ts = null;

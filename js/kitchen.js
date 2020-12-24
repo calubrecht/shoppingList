@@ -1063,7 +1063,7 @@ function saveEnabledState(id, val)
 
 function revertBuildList()
 {
-  post({"action":"getWorkingList", "listName":currentList}, setBuildList);
+  post({"action":"revertWorkingList", "ts":tabTS["shop"], "listName":currentList}, setBuildList);
 }
 
 function handleDoReset(data, statusCode)

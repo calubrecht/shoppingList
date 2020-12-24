@@ -65,7 +65,8 @@ function getWorkingList($user, $type, $name, &$msg, &$ts)
       $db->commitTransaction();
       if ($type == 'shop')
       {
-        return getWorkingList($user, "saved", $name, $msg, $ts);
+        $savedTS = null;
+        return getWorkingList($user, "saved", $name, $msg, $savedTS);
       }
       if ($type == 'menu')
       {
