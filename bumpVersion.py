@@ -65,5 +65,5 @@ if __name__ == '__main__':
     print("Setting version to " + newVersion);
     with open('version.json', 'w') as f:
         json.dump({'version':newVersion}, f)
-    os.system('sed -i \'s/var VERSION=.*/var VERSION="{0};"/\' js/kitchen.js'.format(newVersion))
+    os.system('sed -i \'s/var VERSION=.*/var VERSION="{0}";/\' js/kitchen.js'.format(newVersion))
 

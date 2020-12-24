@@ -22,7 +22,7 @@ var listsReady = false;
 var selectMenuInitted = false;
 var tabTS = {shop: "", menu:""};
 var selectingFromRecipes = false;
-var VERSION="1.1.0;"
+var VERSION="1.1.0";
 
 var pollTimer = null;
 
