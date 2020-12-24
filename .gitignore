@@ -1,2 +1,3 @@
 service/config.php
 *.sw*
+__pycache__

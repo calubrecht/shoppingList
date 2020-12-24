@@ -22,6 +22,7 @@ var listsReady = false;
 var selectMenuInitted = false;
 var tabTS = {shop: "", menu:""};
 var selectingFromRecipes = false;
+var VERSION="1.1.0";
 
 var pollTimer = null;
 
@@ -914,6 +915,21 @@ function addScript(scriptName)
 
 function init()
 {
+  fetch('/version.json', {cache:"reload"}).
+    then( (response) => response.json()).
+    then( j => {
+      console.log("SL version =" + j.version);
+      if (j.version != VERSION)
+      {
+        console.log("New version available. Refreshing Cache");
+        if (window.caches) {
+          window.caches.keys().then(function(names) {
+            for (let name of names) caches.delete(name);
+          });
+        }
+        window.location.reload(true);
+      }
+    }); 
   pickTab('invalid', true); // Hide all tabs, initially.
   post({"action":"checkLogin"}, handleCheckLogin);
   setListeners();
