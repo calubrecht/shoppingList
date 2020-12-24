@@ -1508,7 +1508,7 @@ function populateListNames(data, statusCode)
     selectMenuInitted = true;
   }
   $("#listSelect").selectmenu("refresh");
-   listsReady = true;
+  listsReady = true;
   if (data["lists"].length == 1)
   {
     $("#listSelect-button").hide();

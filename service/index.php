@@ -329,6 +329,7 @@ else if ($request['action'] == "addListName")
   {
     setResult($result, "error", $res);
   }
+  setResult($result, "keepTab", true);
   setResult($result, "isLoggedIn", isLoggedIn());
 }
 else if ($request['action'] == "removeListName")
@@ -338,6 +339,7 @@ else if ($request['action'] == "removeListName")
   {
     setResult($result, "error", $res);
   }
+  setResult($result, "keepTab", true);
   setResult($result, "isLoggedIn", isLoggedIn());
 }
 else
