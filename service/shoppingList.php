@@ -1,5 +1,8 @@
 <?php
 
+
+define('DEFAULT_LIST_NAME', "Default");
+
 function getTS($db, $userId, $list)
 {
   $res =  $db->queryOneColumn("SELECT lastUpdate from listTS Where userId=? and listName = ?", "lastUpdate", array($userId, $list));
@@ -38,7 +41,7 @@ function getTStamps($user)
   return $tstamps;
 }
 
-function getWorkingList($user, $type, &$msg, &$ts)
+function getWorkingList($user, $type, $name, &$msg, &$ts)
 {
   global $db;
   $db->beginTransaction();
@@ -47,7 +50,7 @@ function getWorkingList($user, $type, &$msg, &$ts)
   try
   {
     $ts = getTS($db, $id, $type);
-    $res = $db->queryAll("SELECT id, name, aisle, count, active, done FROM lists WHERE userId = ? and listType = ? ORDER by orderKey ASC", array($id, $type));
+    $res = $db->queryAll("SELECT id, name, aisle, count, active, done FROM lists inner join listNames on lists.listNameId = listNames.listNameId AND lists.userId=listNames.userId WHERE lists.userId = ? and listType = ? and listName= ? ORDER by orderKey ASC", array($id, $type, $name));
     if ($res)
     {
       foreach ($res as $row)
@@ -62,9 +65,13 @@ function getWorkingList($user, $type, &$msg, &$ts)
       $db->commitTransaction();
       if ($type == 'shop')
       {
-        return getWorkingList($user, "saved", $msg, $ts);
+        return getWorkingList($user, "saved", $name, $msg, $ts);
       }
       if ($type == 'menu')
+      {
+        return  array();
+      }
+      if ($name != DEFAULT_LIST_NAME)
       {
         return  array();
       }
@@ -94,6 +101,11 @@ function getWorkingList($user, $type, &$msg, &$ts)
   
 }
 
+function getMenu($user, &$msg, &$ts)
+{
+  return getWorkingList($user, "menu", DEFAULT_LIST_NAME, $msg, $ts);
+}
+
 function validateName($name)
 {
   if (!preg_match('/[ -~]+$/', $name))
@@ -112,32 +124,50 @@ function safeID($id, $currentIds)
     $id = uniqid('id_');
   }
   $idToUse = $id;
-  $count = 0;
+  $idcount = 0;
   while (in_array($idToUse, $currentIds))
   {
-    $idToUse = $id . (string)$count;
-    $oount ++;
+    $idToUse = $id . (string)$idcount;
+    $idcount++;
   }
   return $idToUse;
 }
 
-function addItem($user, $type, $item, $id, $aisle, $order, &$ts)
+function getListNameId($userid, $listName)
+{
+  global $db;
+  $row =  $db->queryOneRow("SELECT listNameId FROM listNames WHERE listName=? AND userId=?", array($listName, $userid));
+  if (!$row)
+  {
+    return -1;
+  }
+  return $row["listNameId"];
+}
+
+function addItem($user, $type, $listName, $item, $id, $aisle, $order, &$ts)
 {
   global $db;
   $db->beginTransaction();
   $userId = getLoginInfo($user)['idusers'];
-  if ($aisle.trim == "" )
+  if (trim($aisle) == "" )
   {
     $aise = "UNKNOWN";
   }
   try
   {
+    $listNameId = getListNameId($userId, $listName);
+    if ($listNameId == -1)
+    {
+      $db->rollbackTransaction();
+      error_log("Unable to add item " . $item . " - cannot find listNameId");
+      return "Failed to add item"; 
+    }
     $ts = getTS($db, $userId, $type);
     // Compare TS
-    $db->execute("UPDATE lists SET orderKey = orderKey +1 WHERE userId=? and listType=? and orderKey >= ?", array($userId, $type, $order));
+    $db->execute("UPDATE lists SET orderKey = orderKey +1 WHERE userId=? and listType=? and orderKey >= ? and listNameId= ?", array($userId, $type, $order, $listNameId));
     $db->execute(
-      "INSERT INTO lists (userId, listType, orderKey, id, aisle, name, count, active, done) VALUES (?, ?, ?, ?, ?, ?, 1, 1, 0)",
-      array($userId, $type, $order, $id, $aisle, $item));
+      "INSERT INTO lists (userId, listType, listNameId, orderKey, id, aisle, name, count, active, done) VALUES (?, ?, ?, ?, ?, ?, ?, 1, 1, 0)",
+      array($userId, $type, $listNameId, $order, $id, $aisle, $item));
     $ts = updateTS($db, $userId, $type, $ts+1);
   }
   catch (Exception $e)
@@ -150,30 +180,37 @@ function addItem($user, $type, $item, $id, $aisle, $order, &$ts)
   $db->commitTransaction();
 }
 
-function deleteItem($user, $type, $id, &$ts)
+function deleteItem($user, $type, $listName, $id, &$ts)
 {
   global $db;
   $db->beginTransaction();
   $userId = getLoginInfo($user)['idusers'];
   try
   {
+    $listNameId = getListNameId($userId, $listName);
+    if ($listNameId == -1)
+    {
+      $db->rollbackTransaction();
+      error_log("Unable to delete item - cannot find listNameId");
+      return "Failed to delete item"; 
+    }
     $ts = getTS($db, $userId, $type);
-    $order = $db->queryOneColumn("SELECT orderKey FROM lists WHERE userId=? and listType=? and id = ?", "orderKey", array($userId, $type, $id));
-    $db->execute("UPDATE lists SET orderKey = orderKey -1 WHERE userId=? and listType=? and orderKey >= ?", array($userId, $type, $order));
-    $db->execute("DELETE FROM lists WHERE userId =? and listType=? and id =?",
-      array($userId, $type, $id));
+    $order = $db->queryOneColumn("SELECT orderKey FROM lists WHERE userId=? and listType=? and id = ? and listNameId = ?", "orderKey", array($userId, $type, $id, $listNameId));
+    $db->execute("UPDATE lists SET orderKey = orderKey -1 WHERE userId=? and listType=? and orderKey >= ? and listNameId = ?", array($userId, $type, $order, $listNameId));
+    $db->execute("DELETE FROM lists WHERE userId =? and listType=? and id =? and listNameId = ?",
+      array($userId, $type, $id, $listNameId));
     $ts = updateTS($db, $userId, $type, $ts +1);
   }
   catch (Exception $e)
   {
     $db->rollbackTransaction();
-    error_log("Unable to add item " . $item . " - " . $e->getMessage());
-    return "Failed to add item"; 
+    error_log("Unable to delete item " . $item . " - " . $e->getMessage());
+    return "Failed to delete item"; 
   } 
   $db->commitTransaction();
 }
 
-function setWorkingList($user, $type, $list, &$ts)
+function setWorkingList($user, $type, $listName, $list, &$ts)
 {
   global $db;
   $db->beginTransaction();
@@ -188,14 +225,21 @@ function setWorkingList($user, $type, $list, &$ts)
       $db->rollbackTransaction();
       return "List out of date, reverting to current.";
     }
-    $db->execute("DELETE FROM lists WHERE userId = ? and listType=?", array($userId, $type)); 
+    $listNameId = getListNameId($userId, $listName);
+    if ($listNameId == -1)
+    {
+      $db->rollbackTransaction();
+      error_log("Unable to save list for user " . $user . " - cannot find listNameId");
+      return "Unable to save list";
+    }
+    $db->execute("DELETE FROM lists WHERE userId = ? and listType=? and listNameId=?", array($userId, $type, $listNameId)); 
     for ($i = 0; $i < count($list); $i++)
     {
        $item = $list[$i];
        $id = $item[0];
        $name = $item[1];
        $aisle = $item[2];
-       if ($aisle.trim == "" )
+       if (trim($aisle) == "" )
        {
          $aise = "UNKNOWN";
        }
@@ -214,8 +258,8 @@ function setWorkingList($user, $type, $list, &$ts)
        }
        $id = safeID($id, $currentIds);
        array_push($currentIds, $id);
-       $res = $db->execute('INSERT INTO lists (userId, listType, orderKey, id, aisle, name, count, active, done) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', array($userId, $type, $i, $id, $aisle, $name, $count, $enabled, $done));
-       $qry = 'INSERT INTO lists (userId, listType, orderKey, id, aisle, name, count, active, done) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'. implode(",", array($userId, $type, $i, $id, $aisle, $name, $count, $enabled, $done, 'nogus'));
+       $res = $db->execute('INSERT INTO lists (userId, listType, listNameId, orderKey, id, aisle, name, count, active, done) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', array($userId, $type, $listNameId, $i, $id, $aisle, $name, $count, $enabled, $done));
+       $qry = 'INSERT INTO lists (userId, listType, listNameId, orderKey, id, aisle, name, count, active, done) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'. implode(",", array($userId, $type, $listNameId, $i, $id, $aisle, $name, $count, $enabled, $done, 'nogus'));
        if (!$res)
        {
          $db->rollbackTransaction();
@@ -232,7 +276,6 @@ function setWorkingList($user, $type, $list, &$ts)
        }
     }
     $ts = updateTS($db, $userId, $type, $ts+1);
-    error_log("Updated ts, ts= " .$ts);
   }
   catch (Exception $e)
   {
@@ -255,7 +298,15 @@ function saveDoneState($user, $request, &$ts)
     $ts = getTS($db, $userId, 'shop');
     $id = $request['id'];
     $doneState = $request['doneState'] ? 1 : 0;
-    $res = $db->execute("UPDATE lists set done = ? where userId =? and listType='shop' and id=?", array($doneState, $userId, $id)); 
+    $listName = $request['listName'];
+    $listNameId = getListNameId($userId, $listName);
+    if ($listNameId == -1)
+    {
+      $db->rollbackTransaction();
+           error_log("Unable to save done state - " . $db->error);
+      return "Unable to save done state";
+    }
+    $res = $db->execute("UPDATE lists set done = ? where userId =? and listType='shop' and id=? and listNameId=?", array($doneState, $userId, $id, $listNameId)); 
     if (!$res)
     {
        $db->rollbackTransaction();
@@ -290,7 +341,15 @@ function saveEnabledState($user, $request, &$ts)
     $ts = getTS($db, $userId, 'shop');
     $id = $request['id'];
     $enabledState = $request['enabledState'] ? 1 : 0;
-    $res = $db->execute("UPDATE lists set active = ? where userId =? and listType='shop' and id=?", array($enabledState, $userId, $id)); 
+    $listName = $request['listName'];
+    $listNameId = getListNameId($userId, $listName);
+    if ($listNameId == -1)
+    {
+      $db->rollbackTransaction();
+           error_log("Unable to save enabled state - " . $db->error);
+      return "Unable to save enabled state";
+    }
+    $res = $db->execute("UPDATE lists set active = ? where userId =? and listType='shop' and id=? and listNameId=?", array($enabledState, $userId, $id, $listNameId)); 
     if (!$res)
     {
        $db->rollbackTransaction();
@@ -324,7 +383,15 @@ function saveCount($user, $request)
   {
     $id = $request['id'];
     $count = $request['count'];
-    $res = $db->execute("UPDATE lists set count = ? where userId =? and listType='shop' and id=?", array($count, $userId, $id)); 
+    $listName = $request['listName'];
+    $listNameId = getListNameId($userId, $listName);
+    if ($listNameId == -1)
+    {
+      $db->rollbackTransaction();
+           error_log("Unable to save count - " . $db->error);
+      return "Unable to save count";
+    }
+    $res = $db->execute("UPDATE lists set count = ? where userId =? and listType='shop' and id=? and listNameId=?", array($count, $userId, $id, $listNameId)); 
     if (!$res)
     {
        $db->rollbackTransaction();
@@ -348,14 +415,21 @@ function saveCount($user, $request)
   $db->commitTransaction();
 }
 
-function resetDoneState($user, $type)
+function resetDoneState($user, $type, $listName)
 {
   global $db;
   $db->beginTransaction();
   $userId = getLoginInfo($user)['idusers'];
   try
   {
-    $res = $db->execute("UPDATE lists set done = 0 where userId =? and listType=?", array($userId, $type)); 
+    $listNameId = getListNameId($userId, $listName);
+    if ($listNameId == -1)
+    {
+      $db->rollbackTransaction();
+           error_log("Unable to reset done state - " . $db->error);
+      return "Unable to reset done state";
+    }
+    $res = $db->execute("UPDATE lists set done = 0 where userId =? and listType=? and listNameId=?", array($userId, $type, $listNameId)); 
     if (!$res)
     {
        $db->rollbackTransaction();
@@ -415,6 +489,73 @@ function getRecipes($user)
   return $list;
 }
 
+function getListNames($user)
+{
+  global $db;
+  $db->beginTransaction();
+  $id = getLoginInfo($user)['idusers'];
+  try
+  {
+    $res = $db->queryAll("SELECT listName FROM listNames WHERE userId = ? ORDER BY listName ASC", $id);
+    return array_map( function($entry) { return $entry["listName"];}, $res);
+  }
+  catch (Exception $e)
+  {
+    $db->rollbackTransaction();
+    error_log("Unable to fetch listNames for user " . $user . " - " . $e->getMessage());
+    return array();
+  }
+  $db->rollbackTransaction();
+  return array();
+}
+
+function addList($user, $listName)
+{
+  global $db;
+  $db->beginTransaction();
+  $id = getLoginInfo($user)['idusers'];
+  try
+  {
+    $res = $db->execute("INSERT INTO listNames (userId, listName) VALUES (?, ?)", array($id, $listName));
+    if (!$res)
+    {
+      $errors = "Unable to add list";
+      error_log("Unable to add list - " . $db->error);
+    }
+  }
+  catch (Exception $e)
+  {
+    $db->rollbackTransaction();
+    error_log("Unable to add list - " . $e->getMessage());
+    return "Unable to add list";
+  }
+  $db->commitTransaction();
+  return $errors;
+}
+
+function removeList($user, $listName)
+{
+  global $db;
+  $db->beginTransaction();
+  $id = getLoginInfo($user)['idusers'];
+  try
+  {
+    $res = $db->execute("DELETE FROM listNames where userId = ? AND listName = ?", array($id, $listName));
+    if (!$res)
+    {
+      $errors = "Unable to remove list";
+      error_log("Unable to remove list - " . $db->error);
+    }
+  }
+  catch (Exception $e)
+  {
+    $db->rollbackTransaction();
+    error_log("Unable to remove list - " . $e->getMessage());
+    return "Unable to remove list";
+  }
+  $db->commitTransaction();
+  return $errors;
+}
 function setOrder($user, $orderedItems)
 {
   global $db;

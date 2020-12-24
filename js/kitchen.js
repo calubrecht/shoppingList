@@ -10,11 +10,16 @@ var tabOrder = {
   "password": ["login", "register"],
   "buildList": [null, "shop"],
   "shop": ["buildList", "menu"],
-  "menu": ["shop", null],
+  "menu": ["shop", "settings"],
+  "settings": ["menu", null],
 
 };
 
+var currentList = "Default";
+var allLists = {};
 var loadedTabs = {build: false, shop:false};
+var listsReady = false;
+var selectMenuInitted = false;
 var tabTS = {shop: "", menu:""};
 var selectingFromRecipes = false;
 
@@ -321,7 +326,7 @@ function createPlannedItem(parentElement, id, name, aisle, number, enabled, done
       {
         items[planType].remove(id);
         box.remove();
-        post({"action":"deleteItem", "itemId":id}, handleCheckLogin);
+        post({"action":"deleteItem", "itemId":id, "listName":currentList}, handleCheckLogin);
       }).appendTo(box);
   }
   return id;
@@ -391,17 +396,14 @@ function commitAisleNameChange(element)
   var newName = element.text().trim();
   if (newName == editingName)
   {
-    console.log('Noting to do here');
     revertAisleName(element);
     return;
   }
   else if (newName == '' || (newName in items[PLANNED_SHOP].aisleNames))
   {
-    console.log('Invalid name')
     revertAisleName(element);
     return;
   }
-  console.log('Changing ' + editingName + ' to ' + element.text());
   element.text(newName);
   items[PLANNED_BUILD].renameAisle(editingName, newName);
   $("#buildListTab").focus();
@@ -413,7 +415,6 @@ function revertAisleName(element)
   element.text(editingName);
   $("#buildListTab").focus();
   $("#aisleSorter").sortable('enable'); 
-  console.log('Reverting aisle name');
 }
 
 function linkAisles()
@@ -454,6 +455,11 @@ function hideAddMenuItemDlg()
   $("#menuTab").focus();
 }
 
+function hideAddListDlg()
+{
+  $("#modal").hide();
+}
+
 var lastAisle = null;
 function fillAisleSelect()
 {
@@ -491,6 +497,14 @@ function showAddMenuItemDlg()
   $('.modalDialog').hide();
   $('#createMenuItemDialog').show();
   $("#modal").find("[name='menuItemName']").val('').focus();
+}
+function showAddListDlg()
+{
+  $("#createListError").text("");
+  $("#modal").show();
+  $('.modalDialog').hide();
+  $('#addListDialog').show();
+  $("#modal").find("[name='listName']").val('').focus();
 }
 
 function showPrintableView(item_collection)
@@ -539,7 +553,7 @@ function addItem(itemName, aisleName, close)
   var aisleId = items[PLANNED_BUILD].aisleNames[aisleName];
   itemId = createPlannedItem($("#" + aisleId), null, itemName, aisleName,1, true, false, PLANNED_BUILD);
   resolveSort(false);
-  post({"action":"addItem", "itemId":itemId, "itemName":itemName, "aisleName":aisleName, "order":items[PLANNED_BUILD].findOrder(itemId)}, handleCheckLogin);
+  post({"action":"addItem", "listName":currentList, "itemId":itemId, "itemName":itemName, "aisleName":aisleName, "order":items[PLANNED_BUILD].findOrder(itemId)}, handleCheckLogin);
   if (close)
   {
     hideAddDlg();
@@ -623,12 +637,12 @@ function pickTab(tabName, clearMessage)
   {
      if (previousTab == "invalid" || previousTab == "shop" || previousTab == "login" || previousTab == "register" ) 
      {
-       post({"action":"getShopList"}, setBuildList);
+       post({"action":"getShopList", "listName":currentList}, setBuildList);
      }
   }
   if (tabName == "shop")
   {
-    post({"action":"getShopList"}, setShopList);
+    post({"action":"getShopList", "listName":currentList}, setShopList);
   }
   if (tabName == 'menu')
   {
@@ -729,6 +743,13 @@ function setListeners()
             return false;
           }
   });
+  $("#addListAndCloseButton").click(function() {addList($("#modal").find("[name='listName']").val(), true); });
+  $("#addListAndCloseButton").keypress(function (e) {
+      if (e.which == 13) {
+            $('#addListAndCloseButton').click();
+            return false;
+          }
+  });
   $("#createItemDialog").keypress(function (e) {
       if (e.which == 13) {
             $('#addItemButton').click();
@@ -744,6 +765,12 @@ function setListeners()
   $("#createMenuItemDialog").keypress(function (e) {
       if (e.which == 13) {
             $('#addMenuItemButton').click();
+            return false;
+          }
+  });
+  $("#addListDialog").keypress(function (e) {
+      if (e.which == 13) {
+            $('#addListAndCloseButton').click();
             return false;
           }
   });
@@ -836,9 +863,9 @@ function setListeners()
             return false;
           }
   });
-  $.event.special.swipe.scrollSupressionThreshold = 800;
-  $(document).on('swipeleft',  moveTabLeft);
-  $(document).on('swiperight', moveTabRight);
+  $("#body").hammer().
+    bind("swipeleft", moveTabLeft).
+    bind("swiperight", moveTabRight);
 }
 
 function moveTabLeft()
@@ -936,6 +963,7 @@ function cleanup()
   $("#buildListBody").empty();
   $("#shopListBody").empty();
   $("#menuBody").find('.Item').remove();
+  clearListNames();
 }
 
 function clearMenu()
@@ -1008,34 +1036,34 @@ function doResetPassword()
 function saveList(list)
 {
   post(
-    {"action":"saveList", "list": list.toList()},
+    {"action":"saveList", "listName":currentList, "list": list.toList()},
     handleCheckLogin);
 }
 
 function saveDoneState(id, val)
 {
   post(
-    {"action":"saveDoneState", "id": id, "doneState": val},
+    {"action":"saveDoneState", "listName":currentList,"id": id, "doneState": val},
     handleCheckLogin);
 }
 
 function saveCount(id, val)
 {
   post(
-    {"action":"saveCount", "id": id, "count": val},
+    {"action":"saveCount", "listName":currentList, "id": id, "count": val},
     handleCheckLogin);
 }
 
 function saveEnabledState(id, val)
 {
   post(
-    {"action":"saveEnabledState", "id": id, "enabledState": val},
+    {"action":"saveEnabledState", "listName":currentList, "id": id, "enabledState": val},
     handleCheckLogin);
 }
 
 function revertBuildList()
 {
-  post({"action":"getWorkingList"}, setBuildList);
+  post({"action":"getWorkingList", "listName":currentList}, setBuildList);
 }
 
 function handleDoReset(data, statusCode)
@@ -1143,7 +1171,7 @@ function handlePoll(data)
    {
      if (data["tock"]["shop"] != tabTS["shop"])
      {
-       post({"action":"getShopList"}, setBuildList);
+       post({"action":"getShopList", "listName":currentList}, setBuildList);
        updates++;
      }
    }
@@ -1151,7 +1179,7 @@ function handlePoll(data)
    {
      if (data["tock"]["shop"] != tabTS["shop"])
      {
-       post({"action":"getShopList"}, setShopList);
+       post({"action":"getShopList", "listName":currentList}, setShopList);
        updates++;
      }
    }
@@ -1215,7 +1243,7 @@ function clearMessages()
 function setNotLoggedIn()
 {
   showTabs(["login", "register"]);
-  hideTabs(["buildList", "shop", "logout", "password", "menu"]);
+  hideTabs(["buildList", "shop", "logout", "password", "menu", "settings"]);
   pickTab("login", false);
   if (pollTimer)
   {
@@ -1225,9 +1253,10 @@ function setNotLoggedIn()
 
 function setLoggedIn()
 {
-  showTabs(["buildList", "shop", "menu","logout"]);
+  showTabs(["buildList", "shop", "menu","logout", "settings"]);
   hideTabs(["login", "password", "register"]);
   pickTab("buildList", false);
+  post({"action":"getListNames"}, populateListNames);
   if (!pollTimer)
   {
      pollTimer = window.setInterval(doPoll, 1000);
@@ -1274,7 +1303,7 @@ function resolveSort(saveSort = true)
   items[PLANNED_BUILD].setOrder(aisleOrder, aisles);
   if (saveSort)
   {
-    post({"action":"setShopList", "list":items[PLANNED_BUILD].toList(), "ts":tabTS["shop"]}, setBuildList);
+    post({"action":"setShopList", "listName":currentList, "list":items[PLANNED_BUILD].toList(), "ts":tabTS["shop"]}, setBuildList);
   }
 }
 
@@ -1323,6 +1352,10 @@ function setBuildList(data, statusCode)
   loadedTabs[PLANNED_BUILD] = true;
   $("#buildListTab").focus();
   window.scrollTo(0,0);
+  if (listsReady)
+  {
+    $("#listSelect").selectmenu("enable");
+  }
 }
 
 function setShopList(data, statusCode)
@@ -1356,7 +1389,7 @@ function setShopList(data, statusCode)
 
   var buttonPane = $("<div></div>").addClass("buttonPane").appendTo("#shopListBody");
   $("<button>Reset</button>").click( function() { 
-      post({"action":"resetDoneState"}, setShopList);}).appendTo(buttonPane);
+      post({"action":"resetDoneState", "listName":currentList}, setShopList);}).appendTo(buttonPane);
   $("<button>Printable View</button>").click( function() { showPrintableView(items[PLANNED_SHOP]); }).appendTo(buttonPane);
   loadedTabs[PLANNED_SHOP] = true;
 }
@@ -1437,3 +1470,139 @@ function setMenu(data, statusCode)
   $("#menuTab").focus();
 }
 
+function changeListName(ev, ui)
+{
+  let newListName = ui.item.label;
+  console.log("Select " + ev + " - " + newListName)
+  if (newListName == currentList)
+  {
+    console.log("Nothing to do ");
+    return;
+  }
+  currentList = newListName;
+  $("#listSelect").selectmenu("disable");
+  post({"action":"getShopList", "listName":currentList}, setBuildList);
+}
+
+function addListToWidgets(listName)
+{
+  if (allLists.hasOwnProperty(listName))
+  {
+    return;
+  }
+  let select = $("#listSelect");
+  let listBox = $("#listNameBox");
+  $("<option>" + listName + "</option>").appendTo(select);
+  $("<option>" + listName + "</option>").appendTo(listBox);
+  allLists[listName] = 1;
+}
+
+function populateListNames(data, statusCode)
+{
+  data["lists"].forEach(addListToWidgets);
+  if (!selectMenuInitted)
+  {
+    $("#listSelect").selectmenu({
+      select: changeListName
+    });
+    selectMenuInitted = true;
+  }
+  $("#listSelect").selectmenu("refresh");
+   listsReady = true;
+  if (data["lists"].length == 1)
+  {
+    $("#listSelect-button").hide();
+  }else
+  {
+    $("#listSelect-button").show();
+  }
+}
+
+function clearListNames()
+{
+  listsReady = false;
+  allLists = {};
+  $("#listSelect").empty();
+  $("#listNameBox").empty();
+}
+
+function validateListName(listName)
+{
+  if (allLists.hasOwnProperty(listName))
+  {
+    $("#createListError").text("The list \"" + listName +"\" already exists");
+    return false;
+  }
+  if (listName.includes(":"))
+  {
+    $("#createListError").text("List names cannot contain the character :");
+    return false;
+  }
+  return true;;
+}
+
+function addList(listName)
+{
+  if (!validateListName(listName))
+  {
+    return;
+  }
+  addListToWidgets(listName);
+  $("#settingsTab").children('error').text('');
+  hideAddListDlg();
+  if (Object.keys(allLists).length >1)
+  {
+    $("#listSelect-button").show();
+  }
+  $("#listSelect").selectmenu("refresh");
+  post({"action":"addListName", "listName":listName}, handleCheckLogin);
+}
+
+function removeSelectedList()
+{
+  let listBox = $("#listNameBox");
+  let selectedLists = listBox.find(":selected");
+  selectedLists.each( function(idx)  {
+    removeList($(this).text());});
+  $("#listSelect").selectmenu("refresh");
+}
+
+function removeList(listName)
+{
+  if (listName == currentList)
+  {
+    $("#settingsTab").children('error').text('Cannot remove the currently selected list');
+    return;
+  }
+  if (listName == "Default")
+  {
+    $("#settingsTab").children('error').text('Cannot remove the Default list');
+    return;
+  }
+  delete allLists[listName];
+  let select = $("#listSelect");
+  let listBox = $("#listNameBox");
+  select.children().each(function (idx) 
+    {
+      let t = $(this).text();
+      if (t  == listName)
+      {
+        $(this).remove();
+      }
+    }
+  );
+  listBox.children().each(function (idx) 
+    {
+      let t = $(this).text();
+      if (t  == listName)
+      {
+        $(this).remove();
+      }
+    }
+  );
+  if (Object.keys(allLists).length <2)
+  {
+    $("#listSelect-button").hide();
+  }
+  post({"action":"removeListName", "listName":listName}, handleCheckLogin);
+}
