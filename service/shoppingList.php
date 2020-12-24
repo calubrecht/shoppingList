@@ -1,7 +1,7 @@
 <?php
 
 
-$DEFAULT_LIST_NAME="Default";
+define('DEFAULT_LIST_NAME', "Default");
 
 function getTS($db, $userId, $list)
 {
@@ -71,7 +71,7 @@ function getWorkingList($user, $type, $name, &$msg, &$ts)
       {
         return  array();
       }
-      if ($name != $DEFAULT_LIST_NAME)
+      if ($name != DEFAULT_LIST_NAME)
       {
         return  array();
       }
@@ -103,7 +103,7 @@ function getWorkingList($user, $type, $name, &$msg, &$ts)
 
 function getMenu($user, &$msg, &$ts)
 {
-  return getWorkingList($user, "menu", $DEFAULT_LIST_NAME, $msg, $ts);
+  return getWorkingList($user, "menu", DEFAULT_LIST_NAME, $msg, $ts);
 }
 
 function validateName($name)
@@ -133,17 +133,10 @@ function safeID($id, $currentIds)
   return $idToUse;
 }
 
-function getListNameId($userid, $listName, $create)
+function getListNameId($userid, $listName)
 {
   global $db;
   $row =  $db->queryOneRow("SELECT listNameId FROM listNames WHERE listName=? AND userId=?", array($listName, $userid));
-  if (!$row and $create)
-  {
-    $db->execute(
-      "INSERT INTO listNames (listName, userId) VALUES (?, ?)",
-      array($listName, $userid));
-    return getListNameId($userid, $listName, false);
-  }
   if (!$row)
   {
     return -1;
@@ -162,7 +155,7 @@ function addItem($user, $type, $listName, $item, $id, $aisle, $order, &$ts)
   }
   try
   {
-    $listNameId = getListNameId($userId, $listName, true);
+    $listNameId = getListNameId($userId, $listName);
     if ($listNameId == -1)
     {
       $db->rollbackTransaction();
@@ -194,7 +187,7 @@ function deleteItem($user, $type, $listName, $id, &$ts)
   $userId = getLoginInfo($user)['idusers'];
   try
   {
-    $listNameId = getListNameId($userId, $listName, false);
+    $listNameId = getListNameId($userId, $listName);
     if ($listNameId == -1)
     {
       $db->rollbackTransaction();
@@ -232,7 +225,7 @@ function setWorkingList($user, $type, $listName, $list, &$ts)
       $db->rollbackTransaction();
       return "List out of date, reverting to current.";
     }
-    $listNameId = getListNameId($userId, $listName, true);
+    $listNameId = getListNameId($userId, $listName);
     if ($listNameId == -1)
     {
       $db->rollbackTransaction();
@@ -306,7 +299,7 @@ function saveDoneState($user, $request, &$ts)
     $id = $request['id'];
     $doneState = $request['doneState'] ? 1 : 0;
     $listName = $request['listName'];
-    $listNameId = getListNameId($userId, $listName, false);
+    $listNameId = getListNameId($userId, $listName);
     if ($listNameId == -1)
     {
       $db->rollbackTransaction();
@@ -349,7 +342,7 @@ function saveEnabledState($user, $request, &$ts)
     $id = $request['id'];
     $enabledState = $request['enabledState'] ? 1 : 0;
     $listName = $request['listName'];
-    $listNameId = getListNameId($userId, $listName, false);
+    $listNameId = getListNameId($userId, $listName);
     if ($listNameId == -1)
     {
       $db->rollbackTransaction();
@@ -391,7 +384,7 @@ function saveCount($user, $request)
     $id = $request['id'];
     $count = $request['count'];
     $listName = $request['listName'];
-    $listNameId = getListNameId($userId, $listName, false);
+    $listNameId = getListNameId($userId, $listName);
     if ($listNameId == -1)
     {
       $db->rollbackTransaction();
@@ -429,7 +422,7 @@ function resetDoneState($user, $type, $listName)
   $userId = getLoginInfo($user)['idusers'];
   try
   {
-    $listNameId = getListNameId($userId, $listName, false);
+    $listNameId = getListNameId($userId, $listName);
     if ($listNameId == -1)
     {
       $db->rollbackTransaction();

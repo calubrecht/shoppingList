@@ -19,6 +19,7 @@ var currentList = "Default";
 var allLists = {};
 var loadedTabs = {build: false, shop:false};
 var listsReady = false;
+var selectMenuInitted = false;
 var tabTS = {shop: "", menu:""};
 var selectingFromRecipes = false;
 
@@ -962,6 +963,7 @@ function cleanup()
   $("#buildListBody").empty();
   $("#shopListBody").empty();
   $("#menuBody").find('.Item').remove();
+  clearListNames();
 }
 
 function clearMenu()
@@ -1253,8 +1255,7 @@ function setLoggedIn()
 {
   showTabs(["buildList", "shop", "menu","logout", "settings"]);
   hideTabs(["login", "password", "register"]);
-  //pickTab("buildList", false);
-  pickTab("settings", false);
+  pickTab("buildList", false);
   post({"action":"getListNames"}, populateListNames);
   if (!pollTimer)
   {
@@ -1498,15 +1499,31 @@ function addListToWidgets(listName)
 
 function populateListNames(data, statusCode)
 {
+  data["lists"].forEach(addListToWidgets);
+  if (!selectMenuInitted)
+  {
+    $("#listSelect").selectmenu({
+      select: changeListName
+    });
+    selectMenuInitted = true;
+  }
+  $("#listSelect").selectmenu("refresh");
+   listsReady = true;
   if (data["lists"].length == 1)
   {
-    select.hide();
+    $("#listSelect-button").hide();
+  }else
+  {
+    $("#listSelect-button").show();
   }
-  data["lists"].forEach(addListToWidgets);
-  $("#listSelect").selectmenu({
-    select: changeListName
-  });
-   listsReady = true;
+}
+
+function clearListNames()
+{
+  listsReady = false;
+  allLists = {};
+  $("#listSelect").empty();
+  $("#listNameBox").empty();
 }
 
 function validateListName(listName)

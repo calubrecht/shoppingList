@@ -124,6 +124,10 @@ function register($req)
       $db->rollbackTransaction();
       return "An error occurred registering user";
     }
+    $userId = getLoginInfo($user)['idusers'];
+    $db->execute(
+      "INSERT INTO listNames (listName, userId) VALUES (?, ?)",
+      array("Default", $userId));
   }
   catch (Exception $e)
   {
