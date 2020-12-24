@@ -1548,7 +1548,7 @@ function addList(listName)
     return;
   }
   addListToWidgets(listName);
-  $("#settingsTab").children('error').text('');
+  $("#settingsTab").children('.error').text('');
   hideAddListDlg();
   if (Object.keys(allLists).length >1)
   {
@@ -1571,12 +1571,12 @@ function removeList(listName)
 {
   if (listName == currentList)
   {
-    $("#settingsTab").children('error').text('Cannot remove the currently selected list');
+    $("#settingsTab").children('.error').text('Cannot remove the currently selected list');
     return;
   }
   if (listName == "Default")
   {
-    $("#settingsTab").children('error').text('Cannot remove the Default list');
+    $("#settingsTab").children('.error').text('Cannot remove the Default list');
     return;
   }
   delete allLists[listName];

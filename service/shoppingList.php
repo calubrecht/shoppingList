@@ -541,11 +541,26 @@ function removeList($user, $listName)
   $id = getLoginInfo($user)['idusers'];
   try
   {
+    $listNameId = getListNameId($id, $listName);
+    if ($listNameId == -1)
+    {
+      $db->rollbackTransaction();
+      error_log("Unable remove list " . $item . " - cannot find listNameId");
+      return "Unable to remove list";
+    }
+    $res = $db->execute("DELETE FROM lists where userId = ? AND listNameId = ?", array($id, $listNameId));
+    if (!$res)
+    {
+      $db->rollbackTransaction();
+      error_log("Unable to remove list - " . $db->error);
+      return "Unable to remove list";
+    }
     $res = $db->execute("DELETE FROM listNames where userId = ? AND listName = ?", array($id, $listName));
     if (!$res)
     {
-      $errors = "Unable to remove list";
+      $db->rollbackTransaction();
       error_log("Unable to remove list - " . $db->error);
+      return "Unable to remove list";
     }
   }
   catch (Exception $e)
