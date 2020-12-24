@@ -1,5 +1,8 @@
 <?php
 
+
+$DEFAULT_LIST_NAME="Default";
+
 function getTS($db, $userId, $list)
 {
   $res =  $db->queryOneColumn("SELECT lastUpdate from listTS Where userId=? and listName = ?", "lastUpdate", array($userId, $list));
@@ -68,6 +71,10 @@ function getWorkingList($user, $type, $name, &$msg, &$ts)
       {
         return  array();
       }
+      if ($name != $DEFAULT_LIST_NAME)
+      {
+        return  array();
+      }
       error_log("Sending default default");
       $msg = "Welcome " . getUser() . ". You have no saved list. Here are some things to get you started.";
       return  array(
@@ -96,7 +103,7 @@ function getWorkingList($user, $type, $name, &$msg, &$ts)
 
 function getMenu($user, &$msg, &$ts)
 {
-  return getWorkingList($user, "menu", "Default", $msg, $ts);
+  return getWorkingList($user, "menu", $DEFAULT_LIST_NAME, $msg, $ts);
 }
 
 function validateName($name)
@@ -509,6 +516,53 @@ function getListNames($user)
   return array();
 }
 
+function addList($user, $listName)
+{
+  global $db;
+  $db->beginTransaction();
+  $id = getLoginInfo($user)['idusers'];
+  try
+  {
+    $res = $db->execute("INSERT INTO listNames (userId, listName) VALUES (?, ?)", array($id, $listName));
+    if (!$res)
+    {
+      $errors = "Unable to add list";
+      error_log("Unable to add list - " . $db->error);
+    }
+  }
+  catch (Exception $e)
+  {
+    $db->rollbackTransaction();
+    error_log("Unable to add list - " . $e->getMessage());
+    return "Unable to add list";
+  }
+  $db->commitTransaction();
+  return $errors;
+}
+
+function removeList($user, $listName)
+{
+  global $db;
+  $db->beginTransaction();
+  $id = getLoginInfo($user)['idusers'];
+  try
+  {
+    $res = $db->execute("DELETE FROM listNames where userId = ? AND listName = ?", array($id, $listName));
+    if (!$res)
+    {
+      $errors = "Unable to remove list";
+      error_log("Unable to remove list - " . $db->error);
+    }
+  }
+  catch (Exception $e)
+  {
+    $db->rollbackTransaction();
+    error_log("Unable to remove list - " . $e->getMessage());
+    return "Unable to remove list";
+  }
+  $db->commitTransaction();
+  return $errors;
+}
 function setOrder($user, $orderedItems)
 {
   global $db;

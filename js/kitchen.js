@@ -1538,6 +1538,7 @@ function addList(listName)
     $("#listSelect-button").show();
   }
   $("#listSelect").selectmenu("refresh");
+  post({"action":"addListName", "listName":listName}, handleCheckLogin);
 }
 
 function removeSelectedList()
@@ -1586,4 +1587,5 @@ function removeList(listName)
   {
     $("#listSelect-button").hide();
   }
+  post({"action":"removeListName", "listName":listName}, handleCheckLogin);
 }

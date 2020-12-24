@@ -322,6 +322,24 @@ else if ($request['action'] == "getListNames")
   setResult($result, "lists", $res);
   setResult($result, "isLoggedIn", isLoggedIn());
 }
+else if ($request['action'] == "addListName")
+{
+  $res = addList(getUser(), $request['listName']); 
+  if ($res)
+  {
+    setResult($result, "error", $res);
+  }
+  setResult($result, "isLoggedIn", isLoggedIn());
+}
+else if ($request['action'] == "removeListName")
+{
+  $res = removeList(getUser(), $request['listName']); 
+  if ($res)
+  {
+    setResult($result, "error", $res);
+  }
+  setResult($result, "isLoggedIn", isLoggedIn());
+}
 else
 {
   setResult($result, "isLoggedIn", isLoggedIn());
