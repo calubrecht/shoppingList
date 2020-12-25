@@ -23,7 +23,7 @@ var listsReady = false;
 var selectMenuInitted = false;
 var tabTS = {shop: "", menu:""};
 var selectingFromRecipes = false;
-var VERSION="1.2.2";
+var VERSION="1.2.3";
 
 var pollTimer = null;
 
@@ -483,7 +483,7 @@ function showAddDlg()
   $("#modal").show();
   $('.modalDialog').hide();
   $('#createItemDialog').show();
-  $("#modal").find("[name='itemName']").val('').focus();
+  $("#modal").find("[name='itemInput']").val('').focus();
 }
 function showAddAisleDlg()
 {
@@ -491,14 +491,14 @@ function showAddAisleDlg()
   $("#modal").show();
   $('.modalDialog').hide();
   $('#createAisleDialog').show();
-  $("#modal").find("[name='aisleName']").val('').focus();
+  $("#modal").find("[name='aisleInput']").val('').focus();
 }
 function showAddMenuItemDlg()
 {
   $("#modal").show();
   $('.modalDialog').hide();
   $('#createMenuItemDialog').show();
-  $("#modal").find("[name='menuItemName']").val('').focus();
+  $("#modal").find("[name='menuItemInput']").val('').focus();
 }
 function showAddListDlg()
 {
@@ -506,7 +506,7 @@ function showAddListDlg()
   $("#modal").show();
   $('.modalDialog').hide();
   $('#addListDialog').show();
-  $("#modal").find("[name='listName']").val('').focus();
+  $("#modal").find("[name='listInput']").val('').focus();
 }
 
 function showPrintableView(item_collection)
