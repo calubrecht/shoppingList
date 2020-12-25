@@ -365,6 +365,23 @@ else if ($request['action'] == "removeListName")
   setResult($result, "keepTab", true);
   setResult($result, "isLoggedIn", isLoggedIn());
 }
+else if ($request['action'] == "getUserSetting")
+{
+  $res = getSetting(getUser(), $request['setting']);
+  setResult($result, "setting", $request['setting']);
+  setResult($result, "settingValue", $res);
+  setResult($result, "isLoggedIn", isLoggedIn());
+}
+else if ($request['action'] == "setUserSetting")
+{
+  $res = setSetting(getUser(), $request['setting'], $request['settingValue']);
+  if ($res)
+  {
+    setResult($result, "error", $res);
+  }
+  setResult($result, "keepTab", true);
+  setResult($result, "isLoggedIn", isLoggedIn());
+}
 else
 {
   setResult($result, "isLoggedIn", isLoggedIn());

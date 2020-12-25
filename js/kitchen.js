@@ -17,12 +17,13 @@ var tabOrder = {
 
 var currentList = "Default";
 var allLists = {};
+var settings = {};
 var loadedTabs = {build: false, shop:false};
 var listsReady = false;
 var selectMenuInitted = false;
 var tabTS = {shop: "", menu:""};
 var selectingFromRecipes = false;
-var VERSION="1.1.0";
+var VERSION="1.2.0";
 
 var pollTimer = null;
 
@@ -307,7 +308,7 @@ function createPlannedItem(parentElement, id, name, aisle, number, enabled, done
           if (loadedTabs[PLANNED_SHOP] && this.isInit)
           {
             saveDoneState(id.substring(2), !val);
-            if (items[planType].allDone())
+            if (items[planType].allDone() && shouldPlayAudio() )
             {
               var audio = document.getElementById("FinishSound");
               audio.play();
@@ -980,6 +981,7 @@ function cleanup()
   $("#shopListBody").empty();
   $("#menuBody").find('.Item').remove();
   clearListNames();
+  settings = {};
 }
 
 function clearMenu()
@@ -1273,6 +1275,7 @@ function setLoggedIn()
   hideTabs(["login", "password", "register"]);
   pickTab("buildList", false);
   post({"action":"getListNames"}, populateListNames);
+  post({"action":"getUserSetting", "setting":"playAudio"}, populateSettings);
   if (!pollTimer)
   {
      pollTimer = window.setInterval(doPoll, 1000);
@@ -1532,6 +1535,29 @@ function populateListNames(data, statusCode)
   {
     $("#listSelect-button").show();
   }
+}
+
+function shouldPlayAudio()
+{
+  let val = settings["playAudio"];
+  return (val == '' || val == 'true') ? true : false;
+}
+
+function populateSettings(data, statusCode)
+{
+  settings[data["setting"]] = data["settingValue"];
+  if (data["setting"] == "playAudio")
+  {
+    $("#enableAudioCheck").prop('checked', shouldPlayAudio());
+  }
+}
+
+function toggleSoundSetting()
+{
+  let setting= $("#enableAudioCheck").prop('checked').toString();
+  settings["playAudio"] = setting;
+  clearMessages();
+  post({"action":"setUserSetting", "setting":"playAudio", "settingValue":setting}, handleCheckLogin);
 }
 
 function clearListNames()

@@ -701,4 +701,54 @@ function addRecipe($user, $recipe)
   $db->commitTransaction();
 }
 
+function getSetting($user, $settingName)
+{
+  global $db;
+  $db->beginTransaction();
+  $id = getLoginInfo($user)['idusers'];
+  try
+  {
+    $res = $db->queryOneColumn("SELECT settingValue FROM settings WHERE userId = ? AND settingName =? ", "settingValue", array($id, $settingName));
+    if ($res)
+    {
+      return $res;
+    }
+    return "";
+  }
+  catch (Exception $e)
+  {
+    $db->rollbackTransaction();
+    error_log("Unable to fetch setting for user " . $user . " - " . $e->getMessage());
+    return "";
+  }
+  $db->rollbackTransaction();
+  return "";
+}
+
+function setSetting($user, $settingName, $settingValue)
+{
+  global $db;
+  $db->beginTransaction();
+  $id = getLoginInfo($user)['idusers'];
+  try
+  {
+    $res = $db->execute("REPLACE into settings (userId, settingName, settingValue) VALUES (?, ?, ?)", array($id, $settingName, $settingValue ));
+    if (!$res)
+    {
+      $db->rollbackTransaction();
+      error_log("Unable to set setting - " . $db->error);
+      return "Unable to set setting";
+    }
+    $db->commitTransaction();
+    return false;
+  }
+  catch (Exception $e)
+  {
+    $db->rollbackTransaction();
+    error_log("Unable to fetch setting for user " . $user . " - " . $e->getMessage());
+    return "Unable to set setting";
+  }
+  $db->rollbackTransaction();
+  return "";
+}
 ?>
