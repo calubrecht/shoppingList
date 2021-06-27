@@ -23,7 +23,7 @@ var listsReady = false;
 var selectMenuInitted = false;
 var tabTS = {shop: "", menu:""};
 var selectingFromRecipes = false;
-var VERSION="1.2.4";
+var VERSION="1.2.4.1";
 
 var pollTimer = null;
 
@@ -719,14 +719,14 @@ function setListeners()
   $("#addItemButton").click(function()
     {
       addItem(
-        $("#modal").find("[name='itemName']").val(),
+        $("#modal").find("[name='itemInput']").val(),
         $("#aisleSelect").val(), false);
-      $("#modal").find("[name='itemName']").val('').focus();
+      $("#modal").find("[name='itemInput']").val('').focus();
     });
   $("#addItemAndCloseButton").click(function()
     {
       addItem(
-        $("#modal").find("[name='itemName']").val(),
+        $("#modal").find("[name='itemInput']").val(),
         $("#aisleSelect").val(), true); });
   $("#addItemAndCloseButton").keypress(function (e) {
       if (e.which == 13) {
@@ -735,10 +735,10 @@ function setListeners()
           }
   });
   $("#addAisleButton").click(function() {
-    addAisle($("#modal").find("[name='aisleName']").val(), false);
-    $("#modal").find("[name='aisleName']").val('').focus();
+    addAisle($("#modal").find("[name='aisleInput']").val(), false);
+    $("#modal").find("[name='aisleInput']").val('').focus();
     });
-  $("#addAisleAndCloseButton").click(function() {addAisle($("#modal").find("[name='aisleName']").val(), true); });
+  $("#addAisleAndCloseButton").click(function() {addAisle($("#modal").find("[name='aisleInput']").val(), true); });
   $("#addAisleAndCloseButton").keypress(function (e) {
       if (e.which == 13) {
             $('#addAisleAndCloseButton').click();
@@ -816,9 +816,9 @@ function setListeners()
   $("#addMenuItemButton").click(function()
     {
       addMenuItem(
-        $("#modal").find("[name='menuItemName']").val(),
+        $("#modal").find("[name='menuItemInput']").val(),
         $("#weekdaySelect").val(), false);
-      $("#modal").find("[name='menuItemName']").val('').focus();
+      $("#modal").find("[name='menuItemInput']").val('').focus();
       let lastDay = $("#weekdaySelect").val();
       let lastDayIndex = DAYS.indexOf(lastDay);
       let nextDayIndex = (lastDayIndex == 6 ? 6 : lastDayIndex+1);
@@ -844,7 +844,7 @@ function setListeners()
             setTimeout( ()=>
               {
                 selectingFromRecipes = false;
-                $("#modal").find("[name='menuItemName']").val(recipeName),
+                $("#modal").find("[name='menuItemInput']").val(recipeName),
                 $('#recipeDlg').hide();
                 $('#createMenuItemDialog').show();
                 setQueryMode(false);
@@ -857,7 +857,7 @@ function setListeners()
   $("#addAndCloseMenuItemButton").click(function()
     {
       addMenuItem(
-        $("#modal").find("[name='menuItemName']").val(),
+        $("#modal").find("[name='menuItemInput']").val(),
         $("#weekdaySelect").val(), true); });
   $("#addAndCloseMenuItemButton").keypress(function (e) {
       if (e.which == 13) {
