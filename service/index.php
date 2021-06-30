@@ -172,6 +172,7 @@ else if ($request['action'] == "saveList")
   {
     setResult($result, "error", $res);
   }
+  $ts = $request["shopTs"];
   $res = setWorkingList(getUser(), "shop", $request["listName"], $request['list'], $ts);
   setResult($result, "isLoggedIn", isLoggedIn());
   setTS($result, "shop", $ts);

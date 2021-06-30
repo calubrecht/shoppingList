@@ -23,7 +23,7 @@ var listsReady = false;
 var selectMenuInitted = false;
 var tabTS = {shop: "", menu:""};
 var selectingFromRecipes = false;
-var VERSION="1.2.4.1";
+var VERSION="1.2.4.5";
 
 var pollTimer = null;
 
@@ -1058,7 +1058,7 @@ function doResetPassword()
 function saveList(list)
 {
   post(
-    {"action":"saveList", "listName":currentList, "list": list.toList()},
+    {"action":"saveList", "listName":currentList, "list": list.toList(), "shopTs":tabTS["shop"]},
     handleCheckLogin);
 }
 

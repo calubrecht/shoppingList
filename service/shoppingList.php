@@ -221,10 +221,10 @@ function setWorkingList($user, $type, $listName, $list, &$ts)
   {
     $oldts = $ts;
     $ts = getTS($db, $userId, $type);
-    if ($oldts != $ts && $ts)
+    if ($oldts != $ts && $ts && $oldts)
     {
       $db->rollbackTransaction();
-      return "List out of date, reverting to current.";
+      return "List out of date, reverting to current. " . $oldts . " != " . $ts . " for " . $type;;
     }
     $listNameId = getListNameId($userId, $listName);
     if ($listNameId == -1)
