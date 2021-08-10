@@ -15,6 +15,8 @@ $request = json_decode($postData, true);
 $loggedIn = false;
 $result = [];
 
+$csrf_token = false;
+
 
 function setResult(&$res, $key, $value)
 {
@@ -44,6 +46,11 @@ else if (!isset($request['action']))
 else if ($request['action'] == "checkLogin")
 {
   setResult($result, "isLoggedIn", isLoggedIn());
+  if (!array_key_exists("csrf_token", $_SESSION))
+  {
+    $_SESSION["csrf_token"] = bin2hex(random_bytes(20));
+  }
+  $csrf_token = $_SESSION["csrf_token"];
 }
 else if ($request['action'] == "login")
 {
@@ -390,5 +397,9 @@ else
 }
 
 header("Content-Type: application/json");
+if ($csrf_token)
+{
+  setcookie("XSRF_TOKEN", $csrf_token);
+}
 echo json_encode($result);
 ?>
