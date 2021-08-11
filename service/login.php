@@ -234,8 +234,6 @@ function getUser()
 
 function logout()
 {
-  $params = session_get_cookie_params();
-  setcookie(session_name(), '', 0, $params['path'], $params['domain'], $params['secure'], isset($params['httponly']));
   unset($_SESSION["loginTS"]);
   unset($_SESSION["user"]);
 }

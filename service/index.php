@@ -82,6 +82,9 @@ else if ($request['action'] == "login")
   if (login($request))
   {
     setResult($result, "msg", "Welcome " . getUser());
+    session_regenerate_id(true);
+    $_SESSION["csrf_token"] = bin2hex(random_bytes(20));
+    $csrf_token = $_SESSION["csrf_token"];
   }
   else
   {
@@ -93,6 +96,9 @@ else if ($request['action'] == "login")
 else if ($request['action'] == "logout")
 {
   logout();
+  session_regenerate_id(true);
+  $_SESSION["csrf_token"] = bin2hex(random_bytes(20));
+  $csrf_token = $_SESSION["csrf_token"];
   setResult($result, "isLoggedIn", isLoggedIn());
 }
 else if ($request['action'] == "register")
