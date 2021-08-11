@@ -653,6 +653,17 @@ function pickTab(tabName, clearMessage)
   activeTab = tabName;
 }
 
+function getTokenCookie()
+{
+  let cookies = document.cookie.split('; ');
+  let XSRF_Cookie = cookies.find(row => row.startsWith('XSRF_TOKEN='));
+  if (XSRF_Cookie)
+  {
+    return XSRF_Cookie.split('=')[1];
+  }
+  return null;
+}
+
 function post(data, callback)
 {
   postTo("", data, callback);
@@ -660,8 +671,15 @@ function post(data, callback)
 
 function postTo(urlAddon, data, callback)
 {
-  var jsonData = JSON.stringify(data);
-  $.post('/service/' + urlAddon, jsonData, callback, "json");
+  let jsonData = JSON.stringify(data);
+  let tokenCookie = getTokenCookie();
+  $.ajax({
+    url: '/service/' + urlAddon,
+    method:'post',
+    data: jsonData,
+    dataType: 'json',
+    success: callback,
+    headers: tokenCookie ? {'X-XSRF-TOKEN' : tokenCookie } : {}});
 }
 
 function setListeners()

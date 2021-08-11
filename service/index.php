@@ -399,7 +399,7 @@ else
 header("Content-Type: application/json");
 if ($csrf_token)
 {
-  setcookie("XSRF_TOKEN", $csrf_token);
+  setcookie("XSRF_TOKEN", $csrf_token, 0, '/');
 }
 echo json_encode($result);
 ?>
