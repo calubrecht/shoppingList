@@ -1,0 +1,26 @@
+location=$1
+
+if [ -z "$location" ]
+then
+  echo "Usage: $0 destinationDir"
+  exit 1
+fi
+
+
+cp *.png $location/
+cp *.xml $location/
+cp *.ico $location/
+cp *.html $location/
+cp *.json $location/
+cp site.webmanifest $location/
+mkdir -p $location/audio
+cp audio/*.wav $location/audio
+mkdir -p $location/css
+cp css/*.css $location/css
+mkdir -p $location/js
+cp js/*.js $location/js
+mkdir -p $location/sl_icons
+cp sl_icons/*.png $location/sl_icons
+rm -rf $location/service
+cp -R service $location
+
