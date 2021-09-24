@@ -24,3 +24,5 @@ cp sl_icons/*.png $location/sl_icons
 rm -rf $location/service
 cp -R service $location
 
+chgrp www-data -R $location
+chmod -R g+x $location/service
