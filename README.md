@@ -8,3 +8,6 @@ which items on the list should appear on the "Shop" tab.
 ![List building](https://calubrecht.github.io/shoppingList/shoppingListScreenshot.PNG)
 
 Available at https://yourshoppinglist.org/
+
+
+Depends on https://github.com/calubrecht/shopingListRecipes for its recipe card functionality.
