@@ -33,11 +33,11 @@ function setTS(&$res, $list, $ts)
 
 function checkToken()
 {
-  $expectedToken = $_SESSION["csrf_token"];
-  if (!isset($expectedToken))
+  if (!array_key_exists("csrf_token", $_SESSION))
   {
     return false;
   }
+  $expectedToken = $_SESSION["csrf_token"];
   $cookieToken = $_COOKIE["XSRF_TOKEN"];
   if ($expectedToken != $cookieToken)
   {
@@ -76,6 +76,8 @@ else if (!checkToken())
 {
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "error", "Bad Token");
+  $_SESSION["csrf_token"] = bin2hex(random_bytes(20));
+  $csrf_token = $_SESSION["csrf_token"];
 }
 else if ($request['action'] == "login")
 {

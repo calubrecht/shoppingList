@@ -166,9 +166,14 @@ function addItem($user, $type, $listName, $item, $id, $aisle, $order, &$ts)
     $ts = getTS($db, $userId, $type);
     // Compare TS
     $db->execute("UPDATE lists SET orderKey = orderKey +1 WHERE userId=? and listType=? and orderKey >= ? and listNameId= ?", array($userId, $type, $order, $listNameId));
-    $db->execute(
+    $insert = $db->execute(
       "INSERT INTO lists (userId, listType, listNameId, orderKey, id, aisle, name, count, active, done) VALUES (?, ?, ?, ?, ?, ?, ?, 1, 1, 0)",
       array($userId, $type, $listNameId, $order, $id, $aisle, $item));
+    if (!$insert) {
+      $db->rollbackTransaction();
+      error_log("Unable to add item " . $item . " - " . $db->error);
+      return "Failed to add item"; 
+    }
     $ts = updateTS($db, $userId, $type, $ts+1);
   }
   catch (Exception $e)
