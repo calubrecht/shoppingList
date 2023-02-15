@@ -4,7 +4,7 @@ global $CONFIG;
 ?>
 <html><head><title>Reset Password</title>
 <link rel="stylesheet" type="text/css" href="/css/kitchen.css" >
-<link rel="icon" type="image/png" href="'.$AD_CONFIG["FAV_ICON"].'" >
+<link rel="icon" type="image/png" href="<?=$CONFIG["FAV_ICON"]?>" >
 <meta name=viewport content=\"width=device-width, initial-scale=1\">
 </head>
 <body >

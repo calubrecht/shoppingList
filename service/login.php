@@ -1,6 +1,14 @@
 <?php
 
-include_once('authRegistry.php')
+function getAuthPlugins() {
+  include_once('authRegistry.php');
+  return getAuthenticators();
+}
+
+function getAuthPluginForName($pluginName) {
+  include_once('authRegistry.php');
+  return getAuthenticatorForName($pluginName);
+}
 
 function isLoggedIn()
 {
@@ -22,64 +30,83 @@ function isLoggedIn()
   return true;
 }
 
-function getLoginInfo($user)
-{
+function getLoginInfo($user) {
   global $db;
   return $db->queryOneRow("SELECT pwHash, idusers, login FROM users WHERE login=?", "$user");
 }
 
+function _createInternalUser($login, $fullName) {
+          global $db;
+          try{
+            $db->beginTransaction();
+            $res = $db->execute("INSERT into users (login, fullName, email, pwHash, isAdmin) VALUES (?, ?, '','',0)", array($login, $fullName));
+            $db->commitTransaction();
+          }
+          catch (Exception $e)
+          {
+            $db->rollbackTransaction();
+            error_log("Unable to insert user " . $e->getMessage);
+          }
+}
+
+function  _createInternalLists($user) {
+          global $db;
+          try{
+            $userId = getLoginInfo($user)['idusers'];
+            $db->beginTransaction();
+            $db->execute(
+              "INSERT INTO listNames (listName, userId) VALUES (?, ?)",
+              array("Default", $userId));
+            $db->commitTransaction();
+          }
+          catch (Exception $e)
+          {
+            $db->rollbackTransaction();
+            error_log("Unable to insert lists " . $e->getMessage);
+          }
+}
+
 function login($req)
 {
-  $user = $req["userName"];
-  $password = $req["password"];
-  global $db;
-  $loginInfo = getLoginInfo($user);
-  if ($loginInfo)
-  {
-    $dbPW = $loginInfo["pwHash"];
-    if (password_verify($password, $dbPW))
-    {
-      $_SESSION["user"] = $loginInfo["login"];
+
+  $plugins = getAuthPlugins();
+  foreach ($plugins as $plugin) {
+    $res = $plugin->login($req);
+    if ($res) {
+      $_SESSION["user"] = $res;
       $_SESSION["loginTS"] = time();
+      error_log("logged in with " . $plugin->getPluginName());
+      if ($plugin->getPluginName() != "NativeAuthentication") {
+        if (!getLoginInfo($res)) {
+          error_log("No internal user for " . $res . " creating now");
+          _createInternalUser($res, $res);
+          _createInternalLists($res);
+        }
+      }
+      return true;
     }
-    else
-    {
-      return false;
-    }
-  }
-  else
-  {
-    return false;
-  }
-  return true;
+  } 
+  return false;
 }
 
 function resetPassword($user, $password)
 {
-  global $db; 
-  $db->beginTransaction();
-  try
-  {
-    $pwHash = password_hash($password, PASSWORD_DEFAULT);
-    $res = $db->execute("UPDATE users set pwHash = ? where login= ? ", array($pwHash, $user));
-    if (!$res)
-    {
-      $db->rollbackTransaction();
-      return false;
+  $plugins = getAuthPlugins();
+  foreach ($plugins as $plugin) {
+    if ($plugin->isUser($user)) {
+      if ($plugin->resetPassword($user, $password)) {
+        global $db;
+        $db->beginTransaction();
+        if (!$db->execute('delete from passwordTokens where passwordTokens.userID in (select users.idusers from users where users.login=?)', array($user)))
+        {
+          error_log('Failed to clean up old password token for user ' . $user . ' - ' . $db->error);
+        }
+        $db->commitTransaction();
+        return true;
+      }
     }
-  }
-  catch (Exception $e)
-  {
-    $db->rollbackTransaction();
-    return false;
-  }
-  if (!$db->execute('delete from passwordTokens where passwordTokens.userID in (select users.idusers from users where users.login=?)', array($user)))
-  {
-    error_log('Failed to clean up old password token for user ' . $user . ' - ' . $db->error);
-  }
-
-  $db->commitTransaction();
-  return true;
+  } 
+  return false;
 }
 
 function register($req)
@@ -100,47 +127,20 @@ function register($req)
   {
     return "Please provide an display name containing only letters, numbers, dashas, underscores and the @";
   }
-
-
-  global $db;
-  $db->beginTransaction();
-  $loginInfo = getLoginInfo($user);
-  if ($loginInfo)
-  {
-    $db->rollbackTransaction();
-    return "User " . $user . " already exists.";
-  }
-  try
-  {
-    $pwHash = password_hash($password, PASSWORD_DEFAULT);
-    $res = $db->execute("INSERT into users (login, pwHash, fullName, email, isAdmin) VALUES (?, ?, ?, ?, 0)", array($user, $pwHash, $displayName, $email));
-    if (!$res)
-    {
-      if ($db->errorCode == 23000)
-      {
-        error_log("Unable to register User " . $user . " - User already exists");
+  
+  $plugins = getAuthPlugins();
+  foreach ($plugins as $plugin) {
+    $res = $plugin->register($user, $password, $displayName, $email);
+    if (!$res) {
+      if ($plugin->getPluginName() != "NativeAuthentication") {
+        _createInternalUser($user, $displayName);
       }
-      else
-      {
-        error_log("Unable to register User " . $user . " - " . $db->error);
-      }
-      $db->rollbackTransaction();
-      return "An error occurred registering user";
+      _createInternalLists($user);
+      error_log("registered ". $user . " logging in");
+      login($req);
     }
-    $userId = getLoginInfo($user)['idusers'];
-    $db->execute(
-      "INSERT INTO listNames (listName, userId) VALUES (?, ?)",
-      array("Default", $userId));
-  }
-  catch (Exception $e)
-  {
-    $db->rollbackTransaction();
-    error_log("Unable to register User " . $user . " - " . $e->getMessage());
-    return "Unable to register User " . $user;
-  }
-  login($req);
-  $db->commitTransaction();
-  return;
+    return $res;
+  } 
 }
 
 function get_include_contents($filename, $data)
@@ -171,20 +171,23 @@ function requestReset($req)
   global $db; 
   global $CONFIG; 
   $user = $req["userName"];
-  try
-  {
-    $db->beginTransaction();
-    $userRes = $db->queryAll("SELECT login, email, idUsers from users where login=?", $user);
-    if (!$userRes)
-    {
-      error_log("User " . $user .  " Doesn't exist");
-      $db->rollbackTransaction();
-      return;
+  $plugins = getAuthPlugins();
+  foreach ($plugins as $plugin) {
+    $emailInfo = $plugin->getLoginEmail($user);
+    if ($emailInfo) {
+      break;
     }
-    $row = $userRes[0];
-    $userId = $row["idUsers"];
-    $email = $row["email"];
-    $res = $db->queryAll("SELECT userID from passwordTokens where userID=? and timestamp > CURRENT_TIMESTAMP() - INTERVAL 2 MINUTE ", ($userId));
+  } 
+  if (!$emailInfo) {
+    return;
+  }
+  $loginInfo = getLoginInfo($user);
+  $userId = $loginInfo["idusers"];
+  $idSource = $emailInfo["idSource"];
+  $email = $emailInfo["email"];
+  try {
+    $db->beginTransaction();
+    $res = $db->queryAll("SELECT userID from passwordTokens where userID=? and idSource=? and timestamp > CURRENT_TIMESTAMP() - INTERVAL 2 MINUTE ", array($userId, $idSource));
     if ($res && count($res) > 0)
     {
       // Prevent repeated requests
@@ -197,7 +200,7 @@ function requestReset($req)
     $headers .= "MIME-Version: 1.0\r\n";
     $headers .= "Content-Type: text/html; charset=ISO-8859-1\r\n";
     $passwordToken = makeToken();
-    $res = $db->execute("REPLACE INTO passwordTokens (userID, token, timestamp) VALUES (?, ?, CURRENT_TIMESTAMP())", array($userId, $passwordToken));
+    $res = $db->execute("REPLACE INTO passwordTokens (userID, idSource, token, timestamp) VALUES (?, ?, ?, CURRENT_TIMESTAMP())", array($userId, $idSource, $passwordToken));
     if (!$res)
     {
       error_log("Could not store token for user:".$user ." -" . $db->error);
@@ -245,14 +248,19 @@ function getUsernameFromToken($token)
 {
   global $db; 
   $db->beginTransaction();
-  $res = $db->queryAll("SELECT login, idusers FROM users, passwordTokens WHERE token=? and userID=idusers and timestamp > CURRENT_TIMESTAMP - INTERVAL 5 MINUTE", $token);
+  $res = $db->queryAll("SELECT userId, idSource FROM passwordTokens WHERE token=? and timestamp > CURRENT_TIMESTAMP - INTERVAL 5 MINUTE", $token);
   if (!$res || count($res) == 0)
   {
-    error_log("Select gave nothing ");
+    error_log("Select gave nothing for token=".$token);
     $db->rollbackTransaction();
     return false;
   }
   $db->commitTransaction();
-  return $res[0]["login"];
+  $plugin = getAuthPluginForName("NativeAuthentication");
+  if (is_null($plugin)) {
+    error_log("Could not find plugin for " . $res[0]["idSource"]);
+    return false;
+  }
+  return  $plugin->getLoginForId($res[0]["userId"]);
 }
 ?>

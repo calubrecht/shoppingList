@@ -117,6 +117,16 @@ class dbHolder
   public function dbInit()
   {
     global $CONFIG;
+    $this->error = '';
+    $host = $CONFIG["DB_HOST"];
+    $dbName = $CONFIG["DB_NAME"];
+    $dbport = $CONFIG["DB_PORT"];
+    $dbuser = $CONFIG["DB_USER"];
+    $dbpass = $CONFIG["DB_PASSWORD"];
+    $this->dbInitWConfig($host, $dbName, $dbport, $dbuser, $dbpass);
+  }
+
+  public function dbInitWConfig($host, $dbName, $dbport, $dbuser, $dbpass) {
     if ($this->dbInited)
     {
       return;
@@ -124,11 +134,6 @@ class dbHolder
 		try
     {
       $this->error = '';
-		  $host = $CONFIG["DB_HOST"];
-      $dbName = $CONFIG["DB_NAME"];
-      $dbport = $CONFIG["DB_PORT"];
-      $dbuser = $CONFIG["DB_USER"];
-      $dbpass = $CONFIG["DB_PASSWORD"];
 			$pdo_connect = 'mysql:host='.$host.';dbname='.$dbName;
 		  $pdo_connect .= ';port='.$dbport;
 			$this->db = new PDO($pdo_connect, $dbuser, $dbpass, array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION));
