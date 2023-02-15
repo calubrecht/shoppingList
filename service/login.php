@@ -1,4 +1,7 @@
 <?php
+
+include_once('authRegistry.php')
+
 function isLoggedIn()
 {
   if (!isset($_SESSION["user"]))
