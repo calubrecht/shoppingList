@@ -23,7 +23,8 @@ var listsReady = false;
 var selectMenuInitted = false;
 var tabTS = {shop: "", menu:""};
 var selectingFromRecipes = false;
-var VERSION="2.0.2";
+var VERSION="2.0.3";
+var pollStatus = 1;
 
 var pollTimer = null;
 
@@ -1206,6 +1207,9 @@ function doPoll()
 
 function handlePoll(data)
 {
+   if (pollStatus == 0) {
+     return;
+   }
    let updates = 0;
    if (activeTab == "buildList")
    {
@@ -1328,6 +1332,11 @@ function forgotPassword()
   pickTab("password", true);
 }
 
+function postSort(listData) {
+  tabTS["shop"] = listData["ts"]["ts"];
+  pollStatus = 1;
+}
+
 function resolveSort(saveSort = true)
 {
   var aisleIdOrder = $('#aisleSorter').sortable("toArray");
@@ -1344,7 +1353,8 @@ function resolveSort(saveSort = true)
   items[PLANNED_BUILD].setOrder(aisleOrder, aisles);
   if (saveSort)
   {
-    post({"action":"setShopList", "listName":currentList, "list":items[PLANNED_BUILD].toList(), "ts":tabTS["shop"]}, setBuildList);
+    pollStatus = 0; // Temporarily halt poll updates
+    post({"action":"setShopList", "listName":currentList, "list":items[PLANNED_BUILD].toList(), "ts":tabTS["shop"]}, postSort);
   }
 }
 
