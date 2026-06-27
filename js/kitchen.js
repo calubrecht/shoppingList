@@ -1202,7 +1202,7 @@ function doPoll()
      skips--;
      return;
    }
-   postTo("tick", {"action":"tick"}, handlePoll);
+   post({"action":"tick"}, handlePoll);
 }
 
 function handlePoll(data)

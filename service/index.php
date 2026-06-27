@@ -44,7 +44,8 @@ function checkToken()
   {
     return false;
   }
-  $headerToken = apache_request_headers()['X-Xsrf-Token'];
+  $headers = array_change_key_case(apache_request_headers(), CASE_UPPER);
+  $headerToken = $headers['X-XSRF-TOKEN'] ?? false;
   if ($expectedToken != $headerToken)
   {
     return false;
