@@ -19,9 +19,13 @@ export default function ShopItem({ item, currentList, onAllDone }) {
   return (
     <div className={`shopItem${item.done ? ' done' : ''}`}>
       <span className="itemCount">{item.count}</span>
-      <span className="itemName">{item.name}</span>
-      <button className="doneToggle" onClick={handleToggle} title={item.done ? 'Mark undone' : 'Mark done'}>
-        {item.done ? '☑' : '☐'}
+      <button
+        type="button"
+        className="itemName"
+        onClick={handleToggle}
+        title={item.done ? 'Mark undone' : 'Mark done'}
+      >
+        {item.name}
       </button>
     </div>
   )

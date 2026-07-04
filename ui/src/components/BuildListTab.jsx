@@ -21,6 +21,7 @@ import Aisle from './Aisle'
 function ItemPreview({ item }) {
   return (
     <div className={`item${item.enabled ? '' : ' disabled'}`}>
+      <span className="dragHandle">⠿</span>
       <span className="itemName">{item.name}</span>
       <input type="number" className="itemCount" defaultValue={item.count} min="0" disabled={!item.enabled} readOnly />
       <button className="toggleEnabled" title={item.enabled ? 'Disable' : 'Enable'}>{item.enabled ? '✓' : '○'}</button>
@@ -32,7 +33,10 @@ function ItemPreview({ item }) {
 function AislePreview({ aisleName, aisle }) {
   return (
     <div className="aisle">
-      <div className="aisleLabel">{aisleName}</div>
+      <div className="aisleLabel">
+        <span className="dragHandle">⠿</span>
+        <span className="aisleNameText">{aisleName}</span>
+      </div>
       {aisle.items.map(item => <ItemPreview key={item.id} item={item} />)}
     </div>
   )

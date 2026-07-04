@@ -40,7 +40,8 @@ export default function Item({ item, currentList }) {
 
   return (
     <div ref={setNodeRef} style={style} className={`item${item.enabled ? '' : ' disabled'}`}>
-      <span className="itemName" {...attributes} {...listeners}>{item.name}</span>
+      <span className="dragHandle" {...attributes} {...listeners}>⠿</span>
+      <span className="itemName">{item.name}</span>
       <input
         key={item.count}
         type="number"
