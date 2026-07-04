@@ -55,6 +55,32 @@ body {
   border-top: 1px solid #aaa;
   background: #fff;
 }
+
+.logoutButton {
+  align-self: center;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  background: #eee;
+  cursor: pointer;
+}
+
+.logoutButton:hover { background: #ddd; }
+
+.logoutIcon {
+  display: none;
+  height: 1.1rem;
+  width: 1.1rem;
+}
+
+@media (max-width: 480px) {
+  .logoutButton .logoutLabel { display: none; }
+  .logoutButton .logoutIcon { display: block; }
+}
+
 .tabContent.narrow { max-width: 400px; }
 
 .tabContent form {
