@@ -380,13 +380,14 @@ function saveEnabledState($user, $request, &$ts)
   $db->commitTransaction();
 }
 
-function saveCount($user, $request)
+function saveCount($user, $request, &$ts)
 {
   global $db;
   $db->beginTransaction();
   $userId = getLoginInfo($user)['idusers'];
   try
   {
+    $ts = getTS($db, $userId, 'shop');
     $id = $request['id'];
     $count = $request['count'];
     $listName = $request['listName'];
@@ -397,7 +398,7 @@ function saveCount($user, $request)
            error_log("Unable to save count - " . $db->error);
       return "Unable to save count";
     }
-    $res = $db->execute("UPDATE lists set count = ? where userId =? and listType='shop' and id=? and listNameId=?", array($count, $userId, $id, $listNameId)); 
+    $res = $db->execute("UPDATE lists set count = ? where userId =? and listType='shop' and id=? and listNameId=?", array($count, $userId, $id, $listNameId));
     if (!$res)
     {
        $db->rollbackTransaction();
@@ -411,12 +412,13 @@ function saveCount($user, $request)
        }
        return "Unable to save count";
     }
+    $ts = updateTS($db, $userId, 'shop', $ts +1);
   }
   catch (Exception $e)
   {
     $db->rollbackTransaction();
     error_log("Unable to save count for user" . $user . " - " . $e->getMessage());
-    return "Failed to save list"; 
+    return "Failed to save list";
   }
   $db->commitTransaction();
 }

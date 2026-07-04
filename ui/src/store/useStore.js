@@ -36,6 +36,7 @@ const useStore = create((set, get) => ({
   setShopList: (shopList, ts) => set({ shopList, shopTs: ts ?? get().shopTs }),
   setShopTs: (ts) => set({ shopTs: ts }),
   setMenu: (menu, ts) => set({ menu, menuTs: ts ?? get().menuTs }),
+  setMenuTs: (ts) => set({ menuTs: ts }),
   setSetting: (key, value) => set((s) => ({ settings: { ...s.settings, [key]: value } })),
 
   setOpenDialog: (dialog) => set({ openDialog: dialog }),
