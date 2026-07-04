@@ -15,6 +15,7 @@ import AddMenuItemDialog from './components/dialogs/AddMenuItemDialog'
 import AddListDialog from './components/dialogs/AddListDialog'
 import PrintView from './components/dialogs/PrintView'
 import AboutDialog from './components/dialogs/AboutDialog'
+import RecipesDialog from './components/dialogs/RecipesDialog'
 import './App.css'
 
 function parseShopList(data) {
@@ -184,6 +185,7 @@ export default function App() {
       <MenuTab
         onOpenAddMenuItem={() => setOpenDialog('addMenuItem')}
         onOpenPrint={() => setOpenDialog('print')}
+        onOpenRecipes={() => setOpenDialog('recipes')}
         onReload={loadMenu}
       />
     ),
@@ -214,6 +216,7 @@ export default function App() {
         <PrintView shopList={shopList} menu={menu} activeTab={activeTab} onClose={() => setOpenDialog(null)} />
       )}
       {openDialog === 'about' && <AboutDialog onClose={() => setOpenDialog(null)} />}
+      {openDialog === 'recipes' && <RecipesDialog onClose={() => setOpenDialog(null)} />}
     </div>
   )
 }

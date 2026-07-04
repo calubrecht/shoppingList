@@ -334,3 +334,110 @@ body {
 .printAisle { break-inside: avoid; margin-bottom: 0.75rem; }
 .printAisleLabel { font-weight: bold; border-bottom: 1px solid #ccc; }
 .printItem { padding: 0.1rem 0.25rem; }
+
+/* Recipes */
+.recipesModal { max-width: 900px; }
+
+.recipeCards {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.recipeCard {
+  width: 260px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.recipeCard.editing { border-color: #4a7; }
+
+.recipeCard .cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.5rem;
+  background: #e8e8e8;
+  font-weight: bold;
+}
+
+.recipeCard .cardTitle { flex: 1; }
+
+.recipeCard input.cardTitle.name {
+  width: 100%;
+  font-weight: bold;
+  font-size: inherit;
+  border: 1px solid #999;
+  padding: 0 0.25rem;
+}
+
+.recipeCard .cardBody { padding: 0.5rem; }
+
+.recipeCard .editBtn,
+.recipeCard .selectBtn {
+  float: right;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.2rem;
+}
+
+.recipeCard .editBtn img,
+.recipeCard .selectBtn img { width: 1.2rem; height: 1.2rem; }
+
+.recipeCard .recipeText { white-space: pre-wrap; margin: 0.25rem 0; clear: both; }
+
+.recipeCard ul { margin: 0.5rem 0 0; padding-left: 1.2rem; }
+.recipeCard li.keyIngredient { color: #0000d0; }
+.recipeCard li.commonIngredient { color: #888; }
+
+.recipeCard input.keyIngredients,
+.recipeCard input.commonIngredients {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid #eee;
+  font: inherit;
+  padding: 0.15rem 0;
+}
+
+.recipeCard input.keyIngredients { color: #0000d0; }
+.recipeCard input.commonIngredients { color: #888; }
+.recipeCard input.keyIngredients::placeholder { color: #aaaadd; }
+.recipeCard input.commonIngredients::placeholder { color: #bbb; }
+
+.recipeCard textarea.description {
+  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 0.3rem;
+  font: inherit;
+  resize: none;
+}
+
+.recipeCard .cardActions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.deleteWidget {
+  float: right;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.deleteWidget .button {
+  cursor: pointer;
+  padding: 0.1rem 0.4rem;
+  border: 1px solid #aaa;
+  border-radius: 3px;
+}
+
+.deleteWidget .delete { color: #c00; }
+.deleteWidget .yes { color: #0a0; }
+.deleteWidget .no { color: #c00; }

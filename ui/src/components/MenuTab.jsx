@@ -11,7 +11,7 @@ import useStore, { DAYS } from '../store/useStore'
 import { post } from '../api'
 import WeekDay from './WeekDay'
 
-export default function MenuTab({ onOpenAddMenuItem, onOpenPrint, onReload }) {
+export default function MenuTab({ onOpenAddMenuItem, onOpenPrint, onOpenRecipes, onReload }) {
   const { menu, deleteMenuItem, clearMenu, menuTs, setMenu } = useStore()
 
   const sensors = useSensors(
@@ -86,6 +86,7 @@ export default function MenuTab({ onOpenAddMenuItem, onOpenPrint, onReload }) {
         <button onClick={onOpenAddMenuItem}>+</button>
         <button onClick={handleClearMenu}>Clear Menu</button>
         <button onClick={onOpenPrint}>Printable View</button>
+        <button onClick={onOpenRecipes}>Show Recipes</button>
       </div>
     </div>
   )
