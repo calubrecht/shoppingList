@@ -99,3 +99,27 @@ server: {
 
 Scaffold the Vite+React project under `app/`, configure the proxy, and validate
 that login/auth works through the proxy before writing any real UI components.
+
+## TODO
+
+- [ ] **Decide on appearance and styling.** Functionality has been prioritized over
+      visual design so far — current look is plain/functional, not a deliberate design.
+- [ ] **Packaging for release deployment.** `npm run build` → `dist/` is set up, but
+      cutover mechanics aren't decided: cachebusting (legacy had its own scheme — see
+      `bin/` and old `Cachebusting`/version-bump commits), how `dist/` actually gets
+      published alongside the legacy app during the strangler-fig period, and when/how
+      to flip `/` over to the React build.
+- [ ] **Verify offline operation and resync afterward.** The "Offline Architecture"
+      section above (mutation queue, Zustand persisted to localStorage, replay on
+      reconnect) is still just a plan — none of it has actually been built yet. What
+      *has* been built is a polling loop (`App.jsx`, 1s tick) for detecting changes made
+      by *other* clients while online, which is a different problem (multi-client sync,
+      not offline resilience) and doesn't cover the offline case at all.
+- [ ] **Aisles aren't real DB entities.** An aisle only exists implicitly via the
+      `aisle` column on `lists` (item) rows — there's no aisle table, so an aisle with
+      zero items can't be persisted at all. This is *why* `addAisle`/`renameAisle` were
+      never implemented server-side (confirmed via grep — no matching case in
+      `service/index.php`'s dispatch; the React UI posts them but they silently
+      no-op). Needs an actual `aisles` table (identity + sort order, independent of
+      whether it currently has items) and the shop-list queries/save path updated to
+      use it.
