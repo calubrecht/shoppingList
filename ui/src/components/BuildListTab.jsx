@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   DndContext,
   DragOverlay,
@@ -42,12 +42,18 @@ function AislePreview({ aisleName, aisle }) {
   )
 }
 
-export default function BuildListTab({ onOpenAddItem, onOpenAddAisle, onReload }) {
+export default function BuildListTab({ onOpenAddItem, onOpenAddAisle, onReload, dialogOpen }) {
   const {
     shopList, currentList, listNames,
     setCurrentList, setShopList, setShopListOrder, renameAisle, shopTs,
   } = useStore()
   const [activeId, setActiveId] = useState(null)
+  const containerRef = useRef(null)
+
+  // Re-focus so Ctrl-A/Ctrl-L keep working once a dialog opened from here closes.
+  useEffect(() => {
+    if (!dialogOpen) containerRef.current?.focus()
+  }, [dialogOpen])
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -142,6 +148,17 @@ export default function BuildListTab({ onOpenAddItem, onOpenAddAisle, onReload }
     post({ action: 'revertWorkingList', ts: shopTs, listName: currentList }).then(onReload)
   }
 
+  function handleKeyDown(e) {
+    if (!e.ctrlKey) return
+    if (e.key === 'a') {
+      e.preventDefault()
+      onOpenAddItem()
+    } else if (e.key === 'l') {
+      e.preventDefault()
+      onOpenAddAisle()
+    }
+  }
+
   const { aisleOrder, aisles } = shopList
 
   const activeAisle = activeId != null && aisleOrder.includes(activeId) ? activeId : null
@@ -150,7 +167,7 @@ export default function BuildListTab({ onOpenAddItem, onOpenAddAisle, onReload }
     : null
 
   return (
-    <div className="buildListTab">
+    <div className="buildListTab" ref={containerRef} tabIndex={0} onKeyDown={handleKeyDown}>
       {listNames.length > 1 && (
         <select value={currentList} onChange={handleListChange}>
           {listNames.map(n => <option key={n} value={n}>{n}</option>)}
@@ -184,11 +201,10 @@ export default function BuildListTab({ onOpenAddItem, onOpenAddAisle, onReload }
       <div className="buttonPane">
         <button onClick={handleSave}>Save</button>
         <button onClick={handleRevert}>Revert</button>
-        <button onClick={onOpenAddAisle}>Add Aisle</button>
       </div>
       <div className="floatingButtons">
-        <button onClick={onOpenAddItem}>Add Item</button>
-        <button onClick={onOpenAddAisle}>Add Aisle</button>
+        <button onClick={onOpenAddItem} title="Add Item (Ctrl+A)">Add Item</button>
+        <button onClick={onOpenAddAisle} title="Add Aisle (Ctrl+L)">Add Aisle</button>
       </div>
     </div>
   )

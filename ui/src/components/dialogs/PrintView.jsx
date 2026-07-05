@@ -1,13 +1,20 @@
+import { useEffect, useRef } from 'react'
 import { DAYS } from '../../store/useStore'
 
 export default function PrintView({ shopList, menu, activeTab, onClose }) {
+  const modalRef = useRef(null)
+
+  useEffect(() => {
+    modalRef.current?.focus()
+  }, [])
+
   function handleKeyDown(e) {
     if (e.key === 'Escape') onClose()
   }
 
   return (
     <div className="modalOverlay" onClick={onClose}>
-      <div className="modal printView" onClick={e => e.stopPropagation()} onKeyDown={handleKeyDown} tabIndex={0}>
+      <div className="modal printView" ref={modalRef} onClick={e => e.stopPropagation()} onKeyDown={handleKeyDown} tabIndex={0}>
         <span className="close" onClick={onClose}>&times;</span>
         <div className="printContent">
           {activeTab === 'menu' ? (

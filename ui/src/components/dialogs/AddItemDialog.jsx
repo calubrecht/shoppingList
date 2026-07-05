@@ -30,12 +30,11 @@ export default function AddItemDialog({ onClose }) {
   }
 
   function handleKeyDown(e) {
-    if (e.key === 'Escape') onClose()
     if (e.key === 'Enter') handleAdd(false)
   }
 
   return (
-    <div className="modalOverlay" onClick={onClose}>
+    <div className="modalOverlay" onClick={onClose} onKeyDown={e => { if (e.key === 'Escape') onClose() }}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <span className="close" onClick={onClose}>&times;</span>
         <h3>Add Item</h3>

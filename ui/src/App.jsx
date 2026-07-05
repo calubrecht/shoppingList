@@ -173,6 +173,7 @@ export default function App() {
         onReload={loadBuildList}
         onOpenAddItem={() => setOpenDialog('addItem')}
         onOpenAddAisle={() => setOpenDialog('addAisle')}
+        dialogOpen={openDialog != null}
       />
     ),
     shop: (

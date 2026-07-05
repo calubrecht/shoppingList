@@ -27,7 +27,7 @@ export default function AddAisleDialog({ onClose }) {
   }
 
   return (
-    <div className="modalOverlay" onClick={onClose}>
+    <div className="modalOverlay" onClick={onClose} onKeyDown={e => { if (e.key === 'Escape') onClose() }}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <span className="close" onClick={onClose}>&times;</span>
         <h3>Add Aisle</h3>
