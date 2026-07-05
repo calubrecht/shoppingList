@@ -21,13 +21,20 @@ export default function AddMenuItemDialog({ onClose }) {
     setPicking(false)
   }
 
+  function saveMenu(menuData) {
+    const list = DAYS.flatMap(day =>
+      (menuData[day] ?? []).map(item => [item.id, item.name, day, 1, true, true]))
+    post({ action: 'setMenu', list, ts: useStore.getState().menuTs })
+      .then(data => { if (data?.ts?.ts) useStore.getState().setMenuTs(data.ts.ts) })
+  }
+
   function handleAdd(close) {
     const name = itemNameRef.current.value.trim()
     if (!name) return
     const id = `menuItem_${name.replace(/[^a-zA-Z0-9]/g, '')}_${Date.now()}`
     const item = { id, name }
     addMenuItem(currentDay, item)
-    post({ action: 'addMenuItem', itemId: id, itemName: name, weekDay: currentDay })
+    saveMenu(useStore.getState().menu)
     if (close) {
       onClose()
     } else {
