@@ -1,0 +1,36 @@
+#!/bin/bash
+set -e
+
+cd "$(dirname "$0")/.."
+
+echo "Building React UI..."
+(cd ui && npm ci && npm run build)
+
+VERSION=$(python3 -c "import json; print(json.load(open('version.json'))['version'])")
+OUT="shoppingList-${VERSION}.tar.gz"
+
+STAGE=$(mktemp -d)
+trap 'rm -rf "$STAGE"' EXIT
+
+cp *.png *.svg *.xml *.ico *.html *.json "$STAGE"/
+cp site.webmanifest "$STAGE"/
+mkdir -p "$STAGE"/audio && cp audio/*.wav "$STAGE"/audio
+mkdir -p "$STAGE"/css && cp css/*.css "$STAGE"/css
+mkdir -p "$STAGE"/js && cp js/*.js "$STAGE"/js
+mkdir -p "$STAGE"/sl_icons && cp sl_icons/*.png "$STAGE"/sl_icons
+cp -R service "$STAGE"/service
+rm -f "$STAGE"/service/config.php
+cp -R ui/dist "$STAGE"/app
+
+tar -czf "$OUT" -C "$STAGE" .
+
+echo "Built $OUT"
+echo ""
+echo "Deploy with:"
+echo "  tar -xzf $OUT -C ~/www/kitchen"
+echo "  chgrp www-data -R ~/www/kitchen"
+echo "  chmod -R g+x ~/www/kitchen/service"
+echo ""
+echo "service/config.php is deliberately excluded (environment-specific secrets)."
+echo "It's left untouched on the server. For a first-time deploy, copy"
+echo "service/config.php.ex to service/config.php on the server and fill it in."
