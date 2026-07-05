@@ -123,3 +123,29 @@ that login/auth works through the proxy before writing any real UI components.
       no-op). Needs an actual `aisles` table (identity + sort order, independent of
       whether it currently has items) and the shop-list queries/save path updated to
       use it.
+- [ ] **BUG: can't drag a menu item into an empty weekday.** `WeekDay`
+      (`ui/src/components/WeekDay.jsx`) only wraps its items in a `<SortableContext>` —
+      when a day has zero items, nothing on that day is registered as a drop target at
+      all, since dnd-kit only tracks rects for elements that call `useSortable` /
+      `useDroppable`, and an empty list renders none. `MenuTab.jsx`'s `handleDragEnd`
+      already expects `over.id` to equal the day name as a fallback (`day ===
+      over.id`), so the intent was there, but nothing makes the empty container itself
+      droppable so that can resolve. Needs `WeekDay` to register the day container as
+      a droppable (or render an empty-state placeholder inside the `SortableContext`)
+      so empty days become valid drop targets.
+- [ ] **BUG: duplicate "Default" row per user in `listNames`.** Confirmed live in the
+      dev DB — every user, including the pre-existing `ca_lazerdwarf` account (not
+      just ones created during this rewrite), has exactly two `("Default", userId)`
+      rows. Root cause: `NativeAuth::register()`
+      (`service/authPlugins/nativePlugin.php`) already inserts the `"Default"` row
+      itself, but `login.php`'s top-level `register()` unconditionally calls
+      `_createInternalLists($user)` again right after — the same function guards the
+      *user*-creation call just above it with `getPluginName() != "NativeAuthentication"`,
+      but that guard was never applied to the *list*-creation call, so every
+      native-auth registration inserts the row twice. `listNames` also has no unique
+      constraint (`PRIMARY KEY (listNameId)` only, per `.sql/lists.sql`), so nothing
+      stops it. The legacy jQuery UI never surfaced the duplicate (likely deduped
+      client-side); the React `<select>` in `SettingsTab.jsx` just renders the raw
+      array, exposing it. Fix: drop the redundant `_createInternalLists` call for
+      `NativeAuthentication` in `register()`, add a unique index on `listNames
+      (userId, listName)`, and clean up existing duplicate rows.
