@@ -7,6 +7,7 @@ echo "Building React UI..."
 (cd ui && npm ci && npm run build)
 
 VERSION=$(python3 -c "import json; print(json.load(open('version.json'))['version'])")
+echo $VERSION > version.txt
 OUT="shoppingList-${VERSION}.tar.gz"
 
 STAGE=$(mktemp -d)
