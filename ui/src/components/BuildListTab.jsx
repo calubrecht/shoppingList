@@ -61,6 +61,26 @@ export default function BuildListTab({ onOpenAddItem, onOpenAddAisle, onReload, 
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   )
 
+  // closestCenter (and closestCorners) compare every registered droppable in one
+  // flat pool - aisle containers AND the items inside them at once. Since aisles
+  // vary wildly in height (empty vs. many items), an aisle's own center can be far
+  // from where the item actually sits, so the resolved drop target flickers/snaps
+  // back as you cross a boundary. Restrict the candidate pool to same-level
+  // droppables only: aisles-vs-aisles when reordering aisles, items-vs-items (plus
+  // empty aisles, which have no item droppable of their own to stand in for) when
+  // moving an item.
+  function collisionDetectionStrategy(args) {
+    const { aisleOrder, aisles } = shopList
+    const isAisleDrag = aisleOrder.includes(args.active.id)
+    const filteredContainers = args.droppableContainers.filter(container => {
+      const isAisleContainer = aisleOrder.includes(container.id)
+      if (isAisleDrag) return isAisleContainer
+      if (isAisleContainer) return (aisles[container.id]?.items.length ?? 0) === 0
+      return true
+    })
+    return closestCenter({ ...args, droppableContainers: filteredContainers })
+  }
+
   function handleDragStart({ active }) {
     setActiveId(active.id)
   }
@@ -177,7 +197,7 @@ export default function BuildListTab({ onOpenAddItem, onOpenAddAisle, onReload, 
       )}
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCenter}
+        collisionDetection={collisionDetectionStrategy}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
         onDragCancel={() => setActiveId(null)}

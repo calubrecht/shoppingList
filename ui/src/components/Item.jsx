@@ -5,7 +5,7 @@ import { post } from '../api'
 
 export default function Item({ item, currentList }) {
   const { toggleItemEnabled, setItemCount, deleteItem } = useStore()
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging, isOver } =
     useSortable({ id: item.id })
 
   const style = {
@@ -39,7 +39,7 @@ export default function Item({ item, currentList }) {
   }
 
   return (
-    <div ref={setNodeRef} style={style} className={`item${item.enabled ? '' : ' disabled'}`}>
+    <div ref={setNodeRef} style={style} className={`item${item.enabled ? '' : ' disabled'}${isOver ? ' dropTarget' : ''}`}>
       <span className="dragHandle" {...attributes} {...listeners}>⠿</span>
       <span className="itemName">{item.name}</span>
       <input

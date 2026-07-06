@@ -7,7 +7,7 @@ export default function Aisle({ aisleName, aisle, currentList, onRenameAisle, on
   const [editValue, setEditValue] = useState('')
   const [editing, setEditing] = useState(false)
 
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging, isOver } =
     useSortable({ id: aisleName })
 
   const style = {
@@ -37,7 +37,7 @@ export default function Aisle({ aisleName, aisle, currentList, onRenameAisle, on
   const itemIds = aisle.items.map(i => i.id)
 
   return (
-    <div ref={setNodeRef} style={style} className="aisle">
+    <div ref={setNodeRef} style={style} className={`aisle${isOver ? ' dropTarget' : ''}`}>
       <div className="aisleLabel" onDoubleClick={startEditing}>
         {!editing && (
           <span className="dragHandle" {...attributes} {...listeners}>⠿</span>
@@ -66,9 +66,11 @@ export default function Aisle({ aisleName, aisle, currentList, onRenameAisle, on
         )}
       </div>
       <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
-        {aisle.items.map(item => (
-          <Item key={item.id} item={item} currentList={currentList} />
-        ))}
+        {aisle.items.length === 0
+          ? <div className="emptyAislePlaceholder">No items</div>
+          : aisle.items.map(item => (
+              <Item key={item.id} item={item} currentList={currentList} />
+            ))}
       </SortableContext>
     </div>
   )
