@@ -19,6 +19,8 @@ import AboutDialog from './components/dialogs/AboutDialog'
 import RecipesDialog from './components/dialogs/RecipesDialog'
 import './App.css'
 
+const LOGGED_IN_TABS = ['buildList', 'shop', 'menu', 'settings']
+
 export default function App() {
   const {
     activeTab, isLoggedIn, openDialog, currentList, shopList, menu, settings, listNames,
@@ -28,13 +30,19 @@ export default function App() {
     setError, setMsg, clearMessages, setOpenDialog,
   } = useStore()
 
+  const initialTabRef = useRef(window.location.hash.slice(1))
+
   useEffect(() => {
-    post({ action: 'checkLogin' }).then(handleCheckLogin).catch(() => {})
+    post({ action: 'checkLogin' }).then(data => handleCheckLogin(data, true)).catch(() => {})
 
     const handleOnline = () => flushQueue()
     window.addEventListener('online', handleOnline)
     return () => window.removeEventListener('online', handleOnline)
   }, [])
+
+  useEffect(() => {
+    if (activeTab) history.replaceState(null, '', `#${activeTab}`)
+  }, [activeTab])
 
   const latestRef = useRef({})
   latestRef.current = { activeTab, loadBuildList, loadShopList, loadMenu }
@@ -72,13 +80,16 @@ export default function App() {
     return () => clearInterval(timer)
   }, [isLoggedIn])
 
-  function handleCheckLogin(data) {
+  function handleCheckLogin(data, useHash = false) {
     if (data.isLoggedIn) {
-      setLoggedIn(true, data.enableForgot)
+      const hashTab = useHash ? initialTabRef.current : undefined
+      const tab = LOGGED_IN_TABS.includes(hashTab) ? hashTab : undefined
+      setLoggedIn(true, data.enableForgot, tab)
       post({ action: 'getListNames' }).then(d => setListNames(d.lists ?? []))
       post({ action: 'getUserSetting', setting: 'playAudio' })
         .then(d => setSetting('playAudio', d.settingValue !== 'false'))
-      post({ action: 'getShopList', listName: currentList })
+      if (tab === 'menu') loadMenu()
+      else post({ action: 'getShopList', listName: currentList })
         .then(d => setShopList(parseShopList(d), d.ts?.ts))
       if (useStore.getState().pendingMutations.length > 0) flushQueue()
     } else {

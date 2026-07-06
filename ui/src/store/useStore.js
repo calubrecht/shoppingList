@@ -43,8 +43,8 @@ const useStore = create(persist((set, get) => ({
   openDialog: null,
 
   setActiveTab: (tab) => set({ activeTab: tab }),
-  setLoggedIn: (isLoggedIn, enableForgot = false) =>
-    set({ isLoggedIn, enableForgot, activeTab: isLoggedIn ? 'buildList' : 'login' }),
+  setLoggedIn: (isLoggedIn, enableForgot = false, tab) =>
+    set({ isLoggedIn, enableForgot, activeTab: isLoggedIn ? (tab ?? 'buildList') : 'login' }),
   setNotLoggedIn: () =>
     set({ isLoggedIn: false, activeTab: 'login', enableForgot: false }),
   setError: (error) => set({ error }),
