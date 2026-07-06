@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import useStore from './store/useStore'
-import { post } from './api'
+import { post, flushQueue } from './api'
+import { parseShopList, parseMenu } from './parsers'
 import TabBar from './components/TabBar'
 import LoginTab from './components/LoginTab'
 import RegisterTab from './components/RegisterTab'
@@ -18,39 +19,10 @@ import AboutDialog from './components/dialogs/AboutDialog'
 import RecipesDialog from './components/dialogs/RecipesDialog'
 import './App.css'
 
-function parseShopList(data) {
-  const aisleOrder = []
-  const aisles = {}
-  for (const item of data.workingList ?? []) {
-    const name = item.aisle ?? 'UNKNOWN'
-    if (!aisles[name]) {
-      aisles[name] = { id: `aisle_${name.replace(/[^a-zA-Z0-9]/g, '_')}`, items: [] }
-      aisleOrder.push(name)
-    }
-    aisles[name].items.push({
-      id: item.id,
-      name: item.name,
-      count: item.count,
-      enabled: item.active,
-      done: item.done,
-      aisle: name,
-    })
-  }
-  return { aisleOrder, aisles }
-}
-
-function parseMenu(data) {
-  const menu = { Sunday: [], Monday: [], Tuesday: [], Wednesday: [], Thursday: [], Friday: [], Saturday: [] }
-  for (const item of data.menu ?? []) {
-    const day = item.aisle
-    if (menu[day]) menu[day].push({ id: item.id, name: item.name })
-  }
-  return menu
-}
-
 export default function App() {
   const {
     activeTab, isLoggedIn, openDialog, currentList, shopList, menu, settings, listNames,
+    pendingMutations,
     setLoggedIn, setNotLoggedIn, setActiveTab,
     setShopList, setMenu, setListNames, setSetting,
     setError, setMsg, clearMessages, setOpenDialog,
@@ -58,6 +30,10 @@ export default function App() {
 
   useEffect(() => {
     post({ action: 'checkLogin' }).then(handleCheckLogin).catch(() => {})
+
+    const handleOnline = () => flushQueue()
+    window.addEventListener('online', handleOnline)
+    return () => window.removeEventListener('online', handleOnline)
   }, [])
 
   const latestRef = useRef({})
@@ -75,6 +51,8 @@ export default function App() {
 
       post({ action: 'tick' }).then(data => {
         if (!data.isLoggedIn) { setNotLoggedIn(); return }
+
+        if (useStore.getState().pendingMutations.length > 0) flushQueue()
 
         const { activeTab: tab, loadBuildList: lb, loadShopList: ls, loadMenu: lm } = latestRef.current
         const { shopTs: curShopTs, menuTs: curMenuTs } = useStore.getState()
@@ -102,6 +80,7 @@ export default function App() {
         .then(d => setSetting('playAudio', d.settingValue !== 'false'))
       post({ action: 'getShopList', listName: currentList })
         .then(d => setShopList(parseShopList(d), d.ts?.ts))
+      if (useStore.getState().pendingMutations.length > 0) flushQueue()
     } else {
       setNotLoggedIn()
     }
@@ -139,21 +118,21 @@ export default function App() {
     post({ action: 'getShopList', listName: currentList }).then(data => {
       if (!data.isLoggedIn) { setNotLoggedIn(); return }
       setShopList(parseShopList(data), data.ts?.ts)
-    })
+    }).catch(() => {})
   }
 
   function loadShopList() {
     post({ action: 'getShopList', listName: currentList }).then(data => {
       if (!data.isLoggedIn) { setNotLoggedIn(); return }
       setShopList(parseShopList(data), data.ts?.ts)
-    })
+    }).catch(() => {})
   }
 
   function loadMenu() {
     post({ action: 'getMenu' }).then(data => {
       if (!data.isLoggedIn) { setNotLoggedIn(); return }
       setMenu(parseMenu(data), data.ts?.ts)
-    })
+    }).catch(() => {})
   }
 
   function handleTabChange(tab) {
@@ -198,6 +177,9 @@ export default function App() {
       <audio id="FinishSound" src="/audio/success.wav" preload="auto" />
       <header className="appHeader" onClick={() => setOpenDialog('about')}>
         <h1>Your Shopping List</h1>
+        {pendingMutations.length > 0 && (
+          <span className="syncStatus">{pendingMutations.length} change{pendingMutations.length === 1 ? '' : 's'} pending sync</span>
+        )}
       </header>
       <TabBar
         activeTab={activeTab}

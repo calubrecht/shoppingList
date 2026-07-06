@@ -109,12 +109,42 @@ that login/auth works through the proxy before writing any real UI components.
       `bin/` and old `Cachebusting`/version-bump commits), how `dist/` actually gets
       published alongside the legacy app during the strangler-fig period, and when/how
       to flip `/` over to the React build.
-- [ ] **Verify offline operation and resync afterward.** The "Offline Architecture"
-      section above (mutation queue, Zustand persisted to localStorage, replay on
-      reconnect) is still just a plan — none of it has actually been built yet. What
-      *has* been built is a polling loop (`App.jsx`, 1s tick) for detecting changes made
-      by *other* clients while online, which is a different problem (multi-client sync,
-      not offline resilience) and doesn't cover the offline case at all.
+- [x] **Verify offline operation and resync afterward.** Built: `persist` middleware
+      on the Zustand store (`ui/src/store/useStore.js`), a mutation queue
+      (`pendingMutations`, collapsed per action+key so repeated offline edits to the
+      same field don't pile up), and queue-aware `post()`/`flushQueue()` in
+      `ui/src/api.js`. `post()` catches network-level failures (`TypeError` from
+      `fetch`, as opposed to a real HTTP error status) for a fixed set of mutation
+      actions and queues them instead of throwing; every existing call site already
+      applies its optimistic store update before calling `post()`, so this is
+      transparent to them. `flushQueue()` replays the queue in order on the `online`
+      event, after `checkLogin`, and opportunistically from the existing 1s `tick`
+      poll. On a stale full-list-replace conflict (`setShopList`/`setMenu` reporting
+      `error`), it adopts the server's returned list rather than trying to merge —
+      confirmed via curl that the conflict response already includes the fresh
+      `workingList`/`ts`, no extra round trip needed. Recipes and `addAisle`/
+      `renameAisle` are explicitly out of scope (see below / next item). Verified
+      end-to-end with a real Playwright run against the dev servers: toggled an item
+      while offline (DevTools-style `context.setOffline(true)`), confirmed it queued
+      and persisted to localStorage with the sync-status indicator showing, then
+      confirmed the queue flushed and the change was actually durable server-side
+      after reconnecting and reloading.
+- [ ] **BUG: brand-new accounts' first list interactions silently don't persist.**
+      `getWorkingList()` (`service/shoppingList.php`) returns a hardcoded 7-item
+      starter list (Lunchmeat, Swiss Cheese, ...) whenever the SQL query for a user's
+      list returns zero rows — meant as a first-run welcome list, but it's never
+      written to the DB. Every mutation (`saveEnabledState`, `saveCount`,
+      `saveDoneState`, etc.) does `UPDATE ... WHERE userId=? AND id=?`, which matches
+      nothing against a fresh account's real (empty) `lists` rows, so it silently
+      no-ops — `execute()` returns true and `ts` still increments even at 0 affected
+      rows, since none of these functions check the affected-row count. The starter
+      list keeps reappearing identically until the user's first genuine `INSERT`
+      (e.g. `addItem`), at which point the SQL query starts returning real rows and
+      the hardcoded fallback disappears for good. Confirmed via curl against a fresh
+      `devagent` account: toggling a starter item returned success 3x with no DB
+      change; adding a new item first, then toggling that, persisted correctly. Fix
+      needs the starter list to actually be seeded into the DB on first read (or on
+      account creation) rather than synthesized on every request.
 - [ ] **Aisles aren't real DB entities.** An aisle only exists implicitly via the
       `aisle` column on `lists` (item) rows — there's no aisle table, so an aisle with
       zero items can't be persisted at all. This is *why* `addAisle`/`renameAisle` were

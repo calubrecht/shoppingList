@@ -1,10 +1,29 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 
 export const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
 const emptyMenu = () => Object.fromEntries(DAYS.map(d => [d, []]))
 
-const useStore = create((set, get) => ({
+function collapseKey(action, payload) {
+  switch (action) {
+    case 'setShopList':
+    case 'revertWorkingList':
+      return `${action}:${payload.listName}`
+    case 'setMenu':
+      return 'setMenu'
+    case 'setUserSetting':
+      return `setUserSetting:${payload.setting}`
+    case 'saveDoneState':
+    case 'saveEnabledState':
+    case 'saveCount':
+      return `${action}:${payload.listName}:${payload.id}`
+    default:
+      return null
+  }
+}
+
+const useStore = create(persist((set, get) => ({
   isLoggedIn: false,
   activeTab: 'login',
   enableForgot: false,
@@ -19,6 +38,7 @@ const useStore = create((set, get) => ({
   settings: { playAudio: true },
   shopTs: '',
   menuTs: '',
+  pendingMutations: [],
 
   openDialog: null,
 
@@ -144,6 +164,29 @@ const useStore = create((set, get) => ({
   addList: (name) => set((s) => ({ listNames: [...s.listNames, name] })),
 
   removeList: (name) => set((s) => ({ listNames: s.listNames.filter(n => n !== name) })),
+
+  enqueueMutation: (action, payload) => set((s) => {
+    const key = collapseKey(action, payload)
+    const filtered = key ? s.pendingMutations.filter(m => m.key !== key) : s.pendingMutations
+    const id = `${Date.now()}_${Math.random().toString(36).slice(2)}`
+    return { pendingMutations: [...filtered, { id, key, action, payload }] }
+  }),
+
+  dequeueMutation: (id) => set((s) => ({
+    pendingMutations: s.pendingMutations.filter(m => m.id !== id),
+  })),
+}), {
+  name: 'shopping-list-storage',
+  partialize: (state) => ({
+    currentList: state.currentList,
+    listNames: state.listNames,
+    shopList: state.shopList,
+    menu: state.menu,
+    settings: state.settings,
+    shopTs: state.shopTs,
+    menuTs: state.menuTs,
+    pendingMutations: state.pendingMutations,
+  }),
 }))
 
 export default useStore

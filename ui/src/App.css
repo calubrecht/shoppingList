@@ -124,6 +124,13 @@ textarea {
   color: var(--color-primary-hover);
 }
 
+.syncStatus {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
 /* Tabs */
 .navBar {
   display: flex;
