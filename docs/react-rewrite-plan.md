@@ -153,14 +153,30 @@ that login/auth works through the proxy before writing any real UI components.
       hit for accounts created after this change. Verified end-to-end: a fresh
       registration now shows all 7 items immediately as real DB rows, and toggling
       one persists correctly across a reload.
-- [ ] **Aisles aren't real DB entities.** An aisle only exists implicitly via the
-      `aisle` column on `lists` (item) rows — there's no aisle table, so an aisle with
-      zero items can't be persisted at all. This is *why* `addAisle`/`renameAisle` were
-      never implemented server-side (confirmed via grep — no matching case in
-      `service/index.php`'s dispatch; the React UI posts them but they silently
-      no-op). Needs an actual `aisles` table (identity + sort order, independent of
-      whether it currently has items) and the shop-list queries/save path updated to
-      use it.
+- [x] **Aisles aren't real DB entities.** An aisle only existed implicitly via the
+      `aisle` column on `lists` (item) rows — there was no aisle table, so an aisle
+      with zero items couldn't be persisted at all. This is *why* `addAisle`/
+      `renameAisle` were never implemented server-side (confirmed via grep — no
+      matching case in `service/index.php`'s dispatch; the React UI posted them but
+      they silently no-opped). Fixed with a new `listAisles(userId, listType,
+      listNameId, aisleName, orderKey)` table, scoped by `listType` exactly like
+      `lists` so aisle structure participates in the existing shop/saved
+      save-and-revert model. `setWorkingList()` now optionally accepts an
+      `aisleOrder` and replaces `listAisles` atomically alongside `lists`; when not
+      given one (the legacy jQuery client, which has no concept of an aisle without
+      items) it infers order from the items' aisle sequence instead, so a legacy
+      save still works but can't preserve a currently-empty aisle — the accepted
+      tradeoff. `getWorkingList()` returns the persisted order, defensively
+      appending any stray aisle name that only appears on an item so nothing is
+      silently dropped on read. `addAisle`/`renameAisle` are real operations now
+      (shop-only, matching `addItem`/`deleteItem`'s live-edit convention;
+      `renameAisle` cascades onto matching `lists.aisle` rows), and a new
+      `removeAisle` (with a matching disabled-unless-empty delete button in
+      `Aisle.jsx`) rounds it out. Backfilled `listAisles` for existing lists in the
+      dev DB from their current item order. Verified end-to-end: an empty aisle
+      survives a full save/drag-reorder (previously silently dropped), renaming an
+      aisle with items updates both the aisle row and its items, and the remove
+      button is blocked for non-empty aisles and works once emptied.
 - [ ] **BUG: can't drag a menu item into an empty weekday.** `WeekDay`
       (`ui/src/components/WeekDay.jsx`) only wraps its items in a `<SortableContext>` —
       when a day has zero items, nothing on that day is registered as a drop target at
