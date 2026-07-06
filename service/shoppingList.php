@@ -41,7 +41,42 @@ function getTStamps($user)
   return $tstamps;
 }
 
-function getWorkingList($user, $type, $name, &$msg, &$ts)
+function dedupeOrder($names)
+{
+  $order = array();
+  foreach ($names as $name)
+  {
+    if (!in_array($name, $order, true))
+    {
+      array_push($order, $name);
+    }
+  }
+  return $order;
+}
+
+function getAisleOrder($userId, $type, $listNameId, $itemAisleNames)
+{
+  global $db;
+  $order = array();
+  $res = $db->queryAll("SELECT aisleName FROM listAisles WHERE userId=? AND listType=? AND listNameId=? ORDER BY orderKey ASC", array($userId, $type, $listNameId));
+  if ($res)
+  {
+    foreach ($res as $row)
+    {
+      array_push($order, $row["aisleName"]);
+    }
+  }
+  foreach ($itemAisleNames as $name)
+  {
+    if (!in_array($name, $order, true))
+    {
+      array_push($order, $name);
+    }
+  }
+  return $order;
+}
+
+function getWorkingList($user, $type, $name, &$msg, &$ts, &$aisleOrder = null)
 {
   global $db;
   $db->beginTransaction();
@@ -59,6 +94,11 @@ function getWorkingList($user, $type, $name, &$msg, &$ts)
           $list,
           array("id" => $row["id"], "name" => $row["name"], "count" => $row["count"], "aisle" => $row['aisle'], "active" => $row["active"] == 1, "done" => $row["done"] == 1));
       }
+      if ($type != 'menu')
+      {
+        $listNameId = getListNameId($id, $name);
+        $aisleOrder = getAisleOrder($id, $type, $listNameId, array_map(function($item) { return $item['aisle']; }, $list));
+      }
     }
     else
     {
@@ -66,7 +106,7 @@ function getWorkingList($user, $type, $name, &$msg, &$ts)
       if ($type == 'shop')
       {
         $savedTS = null;
-        return getWorkingList($user, "saved", $name, $msg, $savedTS);
+        return getWorkingList($user, "saved", $name, $msg, $savedTS, $aisleOrder);
       }
       if ($type == 'menu')
       {
@@ -74,18 +114,16 @@ function getWorkingList($user, $type, $name, &$msg, &$ts)
       }
       if ($name != DEFAULT_LIST_NAME)
       {
+        $aisleOrder = array();
         return  array();
       }
       error_log("Sending default default");
       $msg = "Welcome " . getUser() . ". You have no saved list. Here are some things to get you started.";
-      return  array(
-          array("id" => "id_Lumchmeat", "name" => "Lunchmeat", "count" => 1, "aisle" => "Deli Aisle", "active" => true, "done"=> false),
-          array("id" => "id_SwissCheese", "name" => "Swiss Cheese", "count" => 2, "aisle" => "Deli Aisle", "active"=> true, "done"=> false),
-          array("id" => "id_Liverwurst", "name" => "Liverwurst", "count" => 1, "aisle" => "Deli Aisle", "active"=> false, "done"=> false),
-          array("id" => "id_Tomatoes", "name" => "Tomatoes", "count" => 8, "aisle" => "Produce Aisle", "active"=>true, "done"=> false),
-          array("id" => "id_BranFlakes", "name" => "Bran Flakes", "count" => 1, "aisle" => "Aisle 3", "active"=>true, "done"=> false),
-          array("id" => "id_Milk", "name" => "Milk", "count" => 2, "aisle" => "Dairy Aisle", "active"=>true, "done"=> false),
-          array("id" => "id_FrozenPizza", "name" => "Frozen Pizza", "count" => 1, "aisle" => "Frozen Aisle", "active"=>true, "done"=> false));
+      $starter = getStarterList();
+      $aisleOrder = dedupeOrder(array_map(function($item) { return $item[2]; }, $starter));
+      return array_map(function($item) {
+        return array("id" => $item[0], "name" => $item[1], "count" => $item[3], "aisle" => $item[2], "active" => $item[4], "done" => $item[5]);
+      }, $starter);
     }
   }
   catch (Exception $e)
@@ -97,9 +135,9 @@ function getWorkingList($user, $type, $name, &$msg, &$ts)
 
   $db->commitTransaction();
   return $list;
-  
-  
-  
+
+
+
 }
 
 function getMenu($user, &$msg, &$ts)
@@ -232,17 +270,143 @@ function deleteItem($user, $type, $listName, $id, &$ts)
   {
     $db->rollbackTransaction();
     error_log("Unable to delete item " . $item . " - " . $e->getMessage());
-    return "Failed to delete item"; 
-  } 
+    return "Failed to delete item";
+  }
   $db->commitTransaction();
 }
 
-function setWorkingList($user, $type, $listName, $list, &$ts)
+function addAisle($user, $listName, $aisleName, &$ts)
+{
+  global $db;
+  $db->beginTransaction();
+  $userId = getLoginInfo($user)['idusers'];
+  try
+  {
+    if (!validateName($aisleName))
+    {
+      $db->rollbackTransaction();
+      return "Please enter a valid aisle name";
+    }
+    $listNameId = getListNameId($userId, $listName);
+    if ($listNameId == -1)
+    {
+      $db->rollbackTransaction();
+      error_log("Unable to add aisle - cannot find listNameId");
+      return "Failed to add aisle";
+    }
+    $ts = getTS($db, $userId, 'shop');
+    $count = $db->queryOneColumn("SELECT COUNT(*) as c FROM listAisles WHERE userId=? AND listType='shop' AND listNameId=?", "c", array($userId, $listNameId));
+    $res = $db->execute("INSERT INTO listAisles (userId, listType, listNameId, aisleName, orderKey) VALUES (?, 'shop', ?, ?, ?)", array($userId, $listNameId, $aisleName, $count));
+    if (!$res)
+    {
+      $db->rollbackTransaction();
+      if ($db->errorCode == 23000)
+      {
+        return "An aisle named \"" . $aisleName . "\" already exists";
+      }
+      error_log("Unable to add aisle - " . $db->error);
+      return "Failed to add aisle";
+    }
+    $ts = updateTS($db, $userId, 'shop', $ts + 1);
+  }
+  catch (Exception $e)
+  {
+    $db->rollbackTransaction();
+    error_log("Unable to add aisle " . $aisleName . " - " . $e->getMessage());
+    return "Failed to add aisle";
+  }
+  $db->commitTransaction();
+}
+
+function renameAisle($user, $listName, $oldName, $newName, &$ts)
+{
+  global $db;
+  $db->beginTransaction();
+  $userId = getLoginInfo($user)['idusers'];
+  try
+  {
+    if (!validateName($newName))
+    {
+      $db->rollbackTransaction();
+      return "Please enter a valid aisle name";
+    }
+    $listNameId = getListNameId($userId, $listName);
+    if ($listNameId == -1)
+    {
+      $db->rollbackTransaction();
+      error_log("Unable to rename aisle - cannot find listNameId");
+      return "Failed to rename aisle";
+    }
+    $ts = getTS($db, $userId, 'shop');
+    $res = $db->execute("UPDATE listAisles SET aisleName=? WHERE userId=? AND listType='shop' AND listNameId=? AND aisleName=?", array($newName, $userId, $listNameId, $oldName));
+    if (!$res)
+    {
+      $db->rollbackTransaction();
+      if ($db->errorCode == 23000)
+      {
+        return "An aisle named \"" . $newName . "\" already exists";
+      }
+      error_log("Unable to rename aisle - " . $db->error);
+      return "Failed to rename aisle";
+    }
+    $db->execute("UPDATE lists SET aisle=? WHERE userId=? AND listType='shop' AND listNameId=? AND aisle=?", array($newName, $userId, $listNameId, $oldName));
+    $ts = updateTS($db, $userId, 'shop', $ts + 1);
+  }
+  catch (Exception $e)
+  {
+    $db->rollbackTransaction();
+    error_log("Unable to rename aisle " . $oldName . " - " . $e->getMessage());
+    return "Failed to rename aisle";
+  }
+  $db->commitTransaction();
+}
+
+function removeAisle($user, $listName, $aisleName, &$ts)
+{
+  global $db;
+  $db->beginTransaction();
+  $userId = getLoginInfo($user)['idusers'];
+  try
+  {
+    $listNameId = getListNameId($userId, $listName);
+    if ($listNameId == -1)
+    {
+      $db->rollbackTransaction();
+      error_log("Unable to remove aisle - cannot find listNameId");
+      return "Failed to remove aisle";
+    }
+    $ts = getTS($db, $userId, 'shop');
+    $itemCount = $db->queryOneColumn("SELECT COUNT(*) as c FROM lists WHERE userId=? AND listType='shop' AND listNameId=? AND aisle=?", "c", array($userId, $listNameId, $aisleName));
+    if ($itemCount > 0)
+    {
+      $db->rollbackTransaction();
+      return "Aisle \"" . $aisleName . "\" still has items and cannot be removed";
+    }
+    $res = $db->execute("DELETE FROM listAisles WHERE userId=? AND listType='shop' AND listNameId=? AND aisleName=?", array($userId, $listNameId, $aisleName));
+    if (!$res)
+    {
+      $db->rollbackTransaction();
+      error_log("Unable to remove aisle - " . $db->error);
+      return "Failed to remove aisle";
+    }
+    $ts = updateTS($db, $userId, 'shop', $ts + 1);
+  }
+  catch (Exception $e)
+  {
+    $db->rollbackTransaction();
+    error_log("Unable to remove aisle " . $aisleName . " - " . $e->getMessage());
+    return "Failed to remove aisle";
+  }
+  $db->commitTransaction();
+}
+
+function setWorkingList($user, $type, $listName, $list, &$ts, $aisleOrder = null)
 {
   global $db;
   $db->beginTransaction();
   $userId = getLoginInfo($user)['idusers'];
   $currentIds = array();
+  $itemAisleNames = array();
   try
   {
     $oldts = $ts;
@@ -259,7 +423,7 @@ function setWorkingList($user, $type, $listName, $list, &$ts)
       error_log("Unable to save list for user " . $user . " - cannot find listNameId");
       return "Unable to save list";
     }
-    $db->execute("DELETE FROM lists WHERE userId = ? and listType=? and listNameId=?", array($userId, $type, $listNameId)); 
+    $db->execute("DELETE FROM lists WHERE userId = ? and listType=? and listNameId=?", array($userId, $type, $listNameId));
     for ($i = 0; $i < count($list); $i++)
     {
        $item = $list[$i];
@@ -285,6 +449,7 @@ function setWorkingList($user, $type, $listName, $list, &$ts)
        }
        $id = safeID($id, $currentIds);
        array_push($currentIds, $id);
+       array_push($itemAisleNames, $aisle);
        $res = $db->execute('INSERT INTO lists (userId, listType, listNameId, orderKey, id, aisle, name, count, active, done) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', array($userId, $type, $listNameId, $i, $id, $aisle, $name, $count, $enabled, $done));
        $qry = 'INSERT INTO lists (userId, listType, listNameId, orderKey, id, aisle, name, count, active, done) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'. implode(",", array($userId, $type, $listNameId, $i, $id, $aisle, $name, $count, $enabled, $done, 'nogus'));
        if (!$res)
@@ -302,13 +467,19 @@ function setWorkingList($user, $type, $listName, $list, &$ts)
          return "WTH?";
        }
     }
+    $finalAisleOrder = $aisleOrder !== null ? $aisleOrder : dedupeOrder($itemAisleNames);
+    $db->execute("DELETE FROM listAisles WHERE userId=? AND listType=? AND listNameId=?", array($userId, $type, $listNameId));
+    for ($i = 0; $i < count($finalAisleOrder); $i++)
+    {
+      $db->execute("INSERT INTO listAisles (userId, listType, listNameId, aisleName, orderKey) VALUES (?, ?, ?, ?, ?)", array($userId, $type, $listNameId, $finalAisleOrder[$i], $i));
+    }
     $ts = updateTS($db, $userId, $type, $ts+1);
   }
   catch (Exception $e)
   {
     $db->rollbackTransaction();
     error_log("Unable to save list for user " . $user . " - " . $e->getMessage());
-    return "Failed to save list"; 
+    return "Failed to save list";
   }
 
   $db->commitTransaction();

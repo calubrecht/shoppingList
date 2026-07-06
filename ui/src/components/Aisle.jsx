@@ -3,7 +3,7 @@ import { useSortable, SortableContext, verticalListSortingStrategy } from '@dnd-
 import { CSS } from '@dnd-kit/utilities'
 import Item from './Item'
 
-export default function Aisle({ aisleName, aisle, currentList, onRenameAisle }) {
+export default function Aisle({ aisleName, aisle, currentList, onRenameAisle, onRemoveAisle }) {
   const [editValue, setEditValue] = useState('')
   const [editing, setEditing] = useState(false)
 
@@ -53,6 +53,16 @@ export default function Aisle({ aisleName, aisle, currentList, onRenameAisle }) 
           />
         ) : (
           <span className="aisleNameText">{aisleName}</span>
+        )}
+        {!editing && (
+          <button
+            className="deleteAisle"
+            onClick={() => onRemoveAisle(aisleName)}
+            disabled={aisle.items.length > 0}
+            title={aisle.items.length > 0 ? 'Remove all items from this aisle before deleting it' : 'Delete aisle'}
+          >
+            ✕
+          </button>
         )}
       </div>
       <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>

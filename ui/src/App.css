@@ -260,6 +260,22 @@ textarea {
   padding: 0 0.25rem;
 }
 
+.aisleNameText { flex: 1; }
+
+.deleteAisle {
+  color: var(--color-danger);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0 0.25rem;
+}
+
+.deleteAisle:disabled {
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
 .item {
   display: flex;
   align-items: center;

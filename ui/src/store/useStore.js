@@ -143,6 +143,16 @@ const useStore = create(persist((set, get) => ({
     return { shopList: { aisleOrder, aisles } }
   }),
 
+  removeAisle: (aisleName) => set((s) => {
+    const { [aisleName]: _removed, ...aisles } = s.shopList.aisles
+    return {
+      shopList: {
+        aisleOrder: s.shopList.aisleOrder.filter(n => n !== aisleName),
+        aisles,
+      },
+    }
+  }),
+
   setShopListOrder: (aisleOrder, aislesItems) => set((s) => {
     const aisles = {}
     for (const name of aisleOrder) {

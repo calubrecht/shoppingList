@@ -1,11 +1,11 @@
 export function parseShopList(data) {
-  const aisleOrder = []
   const aisles = {}
+  const itemAisleOrder = []
   for (const item of data.workingList ?? []) {
     const name = item.aisle ?? 'UNKNOWN'
     if (!aisles[name]) {
       aisles[name] = { id: `aisle_${name.replace(/[^a-zA-Z0-9]/g, '_')}`, items: [] }
-      aisleOrder.push(name)
+      itemAisleOrder.push(name)
     }
     aisles[name].items.push({
       id: item.id,
@@ -15,6 +15,16 @@ export function parseShopList(data) {
       done: item.done,
       aisle: name,
     })
+  }
+  // The server's aisleOrder is authoritative (it also carries empty aisles), but
+  // fall back to the item-derived order if it's missing, and fold in any aisle
+  // that only shows up on an item in case the two ever drift apart.
+  const aisleOrder = data.aisleOrder?.length ? [...data.aisleOrder] : [...itemAisleOrder]
+  for (const name of itemAisleOrder) {
+    if (!aisleOrder.includes(name)) aisleOrder.push(name)
+  }
+  for (const name of aisleOrder) {
+    if (!aisles[name]) aisles[name] = { id: `aisle_${name.replace(/[^a-zA-Z0-9]/g, '_')}`, items: [] }
   }
   return { aisleOrder, aisles }
 }

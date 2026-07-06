@@ -46,7 +46,7 @@ function AislePreview({ aisleName, aisle }) {
 export default function BuildListTab({ onOpenAddItem, onOpenAddAisle, onReload, dialogOpen }) {
   const {
     shopList, currentList, listNames,
-    setCurrentList, setShopList, setShopListOrder, renameAisle, shopTs,
+    setCurrentList, setShopList, setShopListOrder, renameAisle, removeAisle, shopTs,
   } = useStore()
   const [activeId, setActiveId] = useState(null)
   const containerRef = useRef(null)
@@ -119,13 +119,18 @@ export default function BuildListTab({ onOpenAddItem, onOpenAddAisle, onReload, 
         list.push([item.id, item.name, aisleName, item.count, item.enabled, item.done])
       }
     }
-    post({ action: 'setShopList', listName: currentList, list, ts: shopTs })
+    post({ action: 'setShopList', listName: currentList, list, aisleOrder, ts: shopTs })
       .then(data => { if (data?.ts?.ts) useStore.getState().setShopTs(data.ts.ts) })
   }
 
   function handleRenameAisle(oldName, newName) {
     renameAisle(oldName, newName)
     post({ action: 'renameAisle', listName: currentList, oldName, newName })
+  }
+
+  function handleRemoveAisle(aisleName) {
+    removeAisle(aisleName)
+    post({ action: 'removeAisle', listName: currentList, aisleName })
   }
 
   function handleListChange(e) {
@@ -186,6 +191,7 @@ export default function BuildListTab({ onOpenAddItem, onOpenAddAisle, onReload, 
                 aisle={aisles[name]}
                 currentList={currentList}
                 onRenameAisle={handleRenameAisle}
+                onRemoveAisle={handleRemoveAisle}
               />
             ))}
           </div>

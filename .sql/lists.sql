@@ -32,3 +32,14 @@ CREATE TABLE `listNames` (
  UNIQUE KEY `listNameUser_UQ` (`userId`,`listName`),
  CONSTRAINT `listNameUser_FK` FOREIGN KEY (`userId`) REFERENCES `users` (`idusers`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1
+
+CREATE TABLE `listAisles` (
+  `userId` int(11) NOT NULL,
+  `listType` varchar(10) NOT NULL,
+  `listNameId` int(11) NOT NULL,
+  `aisleName` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `orderKey` int(11) NOT NULL,
+  PRIMARY KEY (`userId`,`listType`,`listNameId`,`aisleName`) USING BTREE,
+  CONSTRAINT `listAislesUserIdFK` FOREIGN KEY (`userId`) REFERENCES `users` (`idusers`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `listAislesListNameIdFK` FOREIGN KEY (`listNameId`) REFERENCES `listNames` (`listNameId`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1
