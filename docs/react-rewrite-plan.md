@@ -177,16 +177,20 @@ that login/auth works through the proxy before writing any real UI components.
       survives a full save/drag-reorder (previously silently dropped), renaming an
       aisle with items updates both the aisle row and its items, and the remove
       button is blocked for non-empty aisles and works once emptied.
-- [ ] **BUG: can't drag a menu item into an empty weekday.** `WeekDay`
-      (`ui/src/components/WeekDay.jsx`) only wraps its items in a `<SortableContext>` —
-      when a day has zero items, nothing on that day is registered as a drop target at
-      all, since dnd-kit only tracks rects for elements that call `useSortable` /
-      `useDroppable`, and an empty list renders none. `MenuTab.jsx`'s `handleDragEnd`
-      already expects `over.id` to equal the day name as a fallback (`day ===
-      over.id`), so the intent was there, but nothing makes the empty container itself
-      droppable so that can resolve. Needs `WeekDay` to register the day container as
-      a droppable (or render an empty-state placeholder inside the `SortableContext`)
-      so empty days become valid drop targets.
+- [x] **BUG: can't drag a menu item into an empty weekday.** `WeekDay`
+      (`ui/src/components/WeekDay.jsx`) only wrapped its items in a `<SortableContext>` —
+      when a day had zero items, nothing on that day was registered as a drop target
+      at all, since dnd-kit only tracks rects for elements that call `useSortable` /
+      `useDroppable`, and an empty list rendered none. `MenuTab.jsx`'s `handleDragEnd`
+      already expected `over.id` to equal the day name as a fallback (`day ===
+      over.id`), so the intent was there, but nothing made the empty container itself
+      droppable so that could resolve. Fixed by rendering a dedicated `useDroppable`
+      placeholder (id = day name, with an `isOver`-driven hover style) only when a
+      day has zero items, leaving the populated-day rendering path untouched. Also
+      added a `DragOverlay` to `MenuTab.jsx` separately (the dragged item wasn't
+      visible at all while crossing between days, only on drop). Verified via
+      Playwright: dragged an item from Sunday into empty Monday, it moved
+      correctly and persisted server-side after a reload.
 - [ ] **Restore `FAV_ICON` in the new UI.** The legacy app and PHP-rendered pages
       (`service/templates/resetPassword.php`, `expiredToken.php`) use the
       `$CONFIG["FAV_ICON"]` setting from `config.php` so a deploy can brand its own
