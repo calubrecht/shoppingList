@@ -107,6 +107,27 @@ function getMenu($user, &$msg, &$ts)
   return getWorkingList($user, "menu", DEFAULT_LIST_NAME, $msg, $ts);
 }
 
+function getStarterList()
+{
+  return array(
+    array("id_Lumchmeat", "Lunchmeat", "Deli Aisle", 1, true, false),
+    array("id_SwissCheese", "Swiss Cheese", "Deli Aisle", 2, true, false),
+    array("id_Liverwurst", "Liverwurst", "Deli Aisle", 1, false, false),
+    array("id_Tomatoes", "Tomatoes", "Produce Aisle", 8, true, false),
+    array("id_BranFlakes", "Bran Flakes", "Aisle 3", 1, true, false),
+    array("id_Milk", "Milk", "Dairy Aisle", 2, true, false),
+    array("id_FrozenPizza", "Frozen Pizza", "Frozen Aisle", 1, true, false));
+}
+
+function seedStarterList($user)
+{
+  $list = getStarterList();
+  $ts = null;
+  setWorkingList($user, "saved", DEFAULT_LIST_NAME, $list, $ts);
+  $ts = null;
+  setWorkingList($user, "shop", DEFAULT_LIST_NAME, $list, $ts);
+}
+
 function validateName($name)
 {
   if (!preg_match('/[ -~]+$/', $name))
