@@ -129,22 +129,30 @@ that login/auth works through the proxy before writing any real UI components.
       and persisted to localStorage with the sync-status indicator showing, then
       confirmed the queue flushed and the change was actually durable server-side
       after reconnecting and reloading.
-- [ ] **BUG: brand-new accounts' first list interactions silently don't persist.**
+- [x] **BUG: brand-new accounts' first list interactions silently don't persist.**
       `getWorkingList()` (`service/shoppingList.php`) returns a hardcoded 7-item
       starter list (Lunchmeat, Swiss Cheese, ...) whenever the SQL query for a user's
-      list returns zero rows — meant as a first-run welcome list, but it's never
+      list returns zero rows — meant as a first-run welcome list, but it was never
       written to the DB. Every mutation (`saveEnabledState`, `saveCount`,
-      `saveDoneState`, etc.) does `UPDATE ... WHERE userId=? AND id=?`, which matches
+      `saveDoneState`, etc.) does `UPDATE ... WHERE userId=? AND id=?`, which matched
       nothing against a fresh account's real (empty) `lists` rows, so it silently
-      no-ops — `execute()` returns true and `ts` still increments even at 0 affected
+      no-opped — `execute()` returns true and `ts` still increments even at 0 affected
       rows, since none of these functions check the affected-row count. The starter
-      list keeps reappearing identically until the user's first genuine `INSERT`
-      (e.g. `addItem`), at which point the SQL query starts returning real rows and
-      the hardcoded fallback disappears for good. Confirmed via curl against a fresh
+      list kept reappearing identically until the user's first genuine `INSERT`
+      (e.g. `addItem`), at which point the SQL query started returning real rows and
+      the hardcoded fallback disappeared for good. Confirmed via curl against a fresh
       `devagent` account: toggling a starter item returned success 3x with no DB
-      change; adding a new item first, then toggling that, persisted correctly. Fix
-      needs the starter list to actually be seeded into the DB on first read (or on
-      account creation) rather than synthesized on every request.
+      change; adding a new item first, then toggling that, persisted correctly. Fixed
+      by adding `seedStarterList()`, which writes the same starter items into both
+      the `"saved"` and `"shop"` list types via the existing `setWorkingList()`
+      (matching what a real first save already does), called from every
+      account-creation path: registration (native and external auth plugins) and
+      JIT internal-user creation on first login for external plugins.
+      `getWorkingList()`'s synthesized fallback is left in place as a defensive
+      no-op for edge cases (e.g. a manually cleared-out account) but is no longer
+      hit for accounts created after this change. Verified end-to-end: a fresh
+      registration now shows all 7 items immediately as real DB rows, and toggling
+      one persists correctly across a reload.
 - [ ] **Aisles aren't real DB entities.** An aisle only exists implicitly via the
       `aisle` column on `lists` (item) rows — there's no aisle table, so an aisle with
       zero items can't be persisted at all. This is *why* `addAisle`/`renameAisle` were
