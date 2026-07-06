@@ -102,9 +102,9 @@ that login/auth works through the proxy before writing any real UI components.
 
 ## TODO
 
-- [ ] **Decide on appearance and styling.** Functionality has been prioritized over
+- [x] **Decide on appearance and styling.** Functionality has been prioritized over
       visual design so far — current look is plain/functional, not a deliberate design.
-- [ ] **Packaging for release deployment.** `npm run build` → `dist/` is set up, but
+- [x] **Packaging for release deployment.** `npm run build` → `dist/` is set up, but
       cutover mechanics aren't decided: cachebusting (legacy had its own scheme — see
       `bin/` and old `Cachebusting`/version-bump commits), how `dist/` actually gets
       published alongside the legacy app during the strangler-fig period, and when/how
