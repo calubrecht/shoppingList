@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import {
   DndContext,
+  DragOverlay,
   closestCenter,
   PointerSensor,
   KeyboardSensor,
@@ -11,15 +13,31 @@ import useStore, { DAYS } from '../store/useStore'
 import { post } from '../api'
 import WeekDay from './WeekDay'
 
+function MenuItemPreview({ item }) {
+  return (
+    <div className="menuItem">
+      <span className="dragHandle">⠿</span>
+      <span className="itemName">{item.name}</span>
+      <button className="deleteItem" title="Delete">✕</button>
+    </div>
+  )
+}
+
 export default function MenuTab({ onOpenAddMenuItem, onOpenPrint, onOpenRecipes, onReload }) {
   const { menu, deleteMenuItem, clearMenu, menuTs, setMenu } = useStore()
+  const [activeId, setActiveId] = useState(null)
 
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   )
 
+  function handleDragStart({ active }) {
+    setActiveId(active.id)
+  }
+
   function handleDragEnd({ active, over }) {
+    setActiveId(null)
     if (!over || active.id === over.id) return
 
     let srcDay = null
@@ -69,10 +87,19 @@ export default function MenuTab({ onOpenAddMenuItem, onOpenPrint, onOpenRecipes,
   }
 
   const allItemIds = DAYS.flatMap(day => menu[day]?.map(i => i.id) ?? [])
+  const activeItem = activeId != null
+    ? DAYS.flatMap(day => menu[day] ?? []).find(i => i.id === activeId)
+    : null
 
   return (
     <div className="menuTab">
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        onDragCancel={() => setActiveId(null)}
+      >
         {DAYS.map(day => (
           <WeekDay
             key={day}
@@ -81,6 +108,9 @@ export default function MenuTab({ onOpenAddMenuItem, onOpenPrint, onOpenRecipes,
             onDeleteItem={handleDeleteItem}
           />
         ))}
+        <DragOverlay>
+          {activeItem && <MenuItemPreview item={activeItem} />}
+        </DragOverlay>
       </DndContext>
       <div className="buttonPane">
         <button onClick={onOpenAddMenuItem}>+</button>
