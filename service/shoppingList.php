@@ -527,7 +527,14 @@ function addList($user, $listName)
     $res = $db->execute("INSERT INTO listNames (userId, listName) VALUES (?, ?)", array($id, $listName));
     if (!$res)
     {
-      $errors = "Unable to add list";
+      if ($db->errorCode == 23000)
+      {
+        $errors = "A list named \"" . $listName . "\" already exists";
+      }
+      else
+      {
+        $errors = "Unable to add list";
+      }
       error_log("Unable to add list - " . $db->error);
     }
   }
