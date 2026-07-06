@@ -363,6 +363,14 @@ textarea {
   border-top: 1px solid var(--color-border);
 }
 
+.emptyDayDropZone {
+  min-height: 2rem;
+}
+
+.emptyDayDropZone.isOver {
+  background: var(--color-surface-muted);
+}
+
 .menuItem .itemName {
   flex: 1;
   font-size: 0.9rem;
