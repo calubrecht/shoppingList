@@ -18,7 +18,7 @@ export default function Item({ item, currentList }) {
     if (data?.ts?.ts) useStore.getState().setShopTs(data.ts.ts)
   }
 
-  function handleCountBlur(e) {
+  function handleCountChange(e) {
     const val = e.target.value
     if (/^\d+$/.test(val) && parseInt(val, 10) >= 0) {
       setItemCount(item.id, parseInt(val, 10))
@@ -49,7 +49,7 @@ export default function Item({ item, currentList }) {
         defaultValue={item.count}
         min="0"
         disabled={!item.enabled}
-        onBlur={handleCountBlur}
+        onChange={handleCountChange}
       />
       <button className="toggleEnabled" onClick={handleToggleEnabled} title={item.enabled ? 'Disable' : 'Enable'}>
         {item.enabled ? '✓' : '○'}
