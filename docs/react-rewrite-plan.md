@@ -173,6 +173,19 @@ that login/auth works through the proxy before writing any real UI components.
       Currently shows the legacy jQuery UI (referenced from `README.md`); should be
       updated once the React UI's styling/appearance is representative of the
       intended cutover look.
+- [ ] **Password reset flow needs a React-side redo, and appears currently broken.**
+      The recovery email (`service/templates/recoveryEmail.php`) links to
+      `<HOST>/resetPassword/<token>` — a path segment — but
+      `service/resetPassword.php` reads the token from `$_GET["token"]`
+      (a query string) and there's no Apache rewrite mapping the path form to it
+      (`apacheConfig/kitchen.conf` only rewrites `tick` under `/service/`), so the
+      link in the email 404s as-is. Separately, `resetPassword.php` renders
+      `templates/resetPassword.php`/`expiredToken.php`, which are standalone
+      PHP pages styled with the legacy `css/kitchen.css` and jQuery
+      (`js/kitchen.js`'s `doResetPassword()`) — they don't match the new React UI
+      at all. Needs: fixing the token URL (query param, or an actual rewrite rule),
+      and either restyling these pages to match the new UI or moving the reset flow
+      into `ui/` itself (with the emailed link pointing at `/app/...`).
 - [ ] **BUG: duplicate "Default" row per user in `listNames`.** Confirmed live in the
       dev DB — every user, including the pre-existing `ca_lazerdwarf` account (not
       just ones created during this rewrite), has exactly two `("Default", userId)`
