@@ -16,6 +16,7 @@ import {
 } from '@dnd-kit/sortable'
 import useStore from '../store/useStore'
 import { post } from '../api'
+import { parseShopList } from '../parsers'
 import Aisle from './Aisle'
 
 function ItemPreview({ item }) {
@@ -131,12 +132,8 @@ export default function BuildListTab({ onOpenAddItem, onOpenAddAisle, onReload, 
     const name = e.target.value
     setCurrentList(name)
     post({ action: 'getShopList', listName: name }).then(data => {
-      if (data.workingList) {
-        const { parseShopList } = window.__shopListUtils ?? {}
-        if (parseShopList) setShopList(parseShopList(data), data.ts?.ts)
-      }
+      setShopList(parseShopList(data), data.ts?.ts)
     })
-    onReload()
   }
 
   function handleSave() {
