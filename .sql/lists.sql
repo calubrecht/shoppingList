@@ -29,6 +29,6 @@ CREATE TABLE `listNames` (
  `listName` varchar(100) NOT NULL,
  `userId` int(11) NOT NULL,
  PRIMARY KEY (`listNameId`),
- KEY `listNameUser_FK` (`userId`),
+ UNIQUE KEY `listNameUser_UQ` (`userId`,`listName`),
  CONSTRAINT `listNameUser_FK` FOREIGN KEY (`userId`) REFERENCES `users` (`idusers`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1
