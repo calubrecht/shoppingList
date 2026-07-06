@@ -186,19 +186,21 @@ that login/auth works through the proxy before writing any real UI components.
       at all. Needs: fixing the token URL (query param, or an actual rewrite rule),
       and either restyling these pages to match the new UI or moving the reset flow
       into `ui/` itself (with the emailed link pointing at `/app/...`).
-- [ ] **BUG: duplicate "Default" row per user in `listNames`.** Confirmed live in the
+- [x] **BUG: duplicate "Default" row per user in `listNames`.** Confirmed live in the
       dev DB — every user, including the pre-existing `ca_lazerdwarf` account (not
-      just ones created during this rewrite), has exactly two `("Default", userId)`
+      just ones created during this rewrite), had exactly two `("Default", userId)`
       rows. Root cause: `NativeAuth::register()`
       (`service/authPlugins/nativePlugin.php`) already inserts the `"Default"` row
-      itself, but `login.php`'s top-level `register()` unconditionally calls
-      `_createInternalLists($user)` again right after — the same function guards the
+      itself, but `login.php`'s top-level `register()` unconditionally called
+      `_createInternalLists($user)` again right after — the same function guarded the
       *user*-creation call just above it with `getPluginName() != "NativeAuthentication"`,
       but that guard was never applied to the *list*-creation call, so every
-      native-auth registration inserts the row twice. `listNames` also has no unique
-      constraint (`PRIMARY KEY (listNameId)` only, per `.sql/lists.sql`), so nothing
-      stops it. The legacy jQuery UI never surfaced the duplicate (likely deduped
-      client-side); the React `<select>` in `SettingsTab.jsx` just renders the raw
-      array, exposing it. Fix: drop the redundant `_createInternalLists` call for
-      `NativeAuthentication` in `register()`, add a unique index on `listNames
-      (userId, listName)`, and clean up existing duplicate rows.
+      native-auth registration inserted the row twice. Fixed by moving
+      `_createInternalLists($user)` inside that existing guard, so it now only runs
+      for non-native plugins (matching `_createInternalUser`'s scope). Added a
+      `UNIQUE KEY (userId, listName)` constraint to `listNames` in `.sql/lists.sql`
+      so this can't silently recur, and cleaned up the existing duplicate rows in the
+      dev DB directly (no migration runner in this project) — confirmed each
+      duplicate pair's higher-numbered `listNameId` had zero rows in `lists` before
+      deleting it, then verified via a fresh registration that exactly one `Default`
+      row is now created.
