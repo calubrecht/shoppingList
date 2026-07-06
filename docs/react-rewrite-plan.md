@@ -191,12 +191,21 @@ that login/auth works through the proxy before writing any real UI components.
       visible at all while crossing between days, only on drop). Verified via
       Playwright: dragged an item from Sunday into empty Monday, it moved
       correctly and persisted server-side after a reload.
-- [ ] **Restore `FAV_ICON` in the new UI.** The legacy app and PHP-rendered pages
+- [x] **Restore `FAV_ICON` in the new UI.** The legacy app and PHP-rendered pages
       (`service/templates/resetPassword.php`, `expiredToken.php`) use the
       `$CONFIG["FAV_ICON"]` setting from `config.php` so a deploy can brand its own
-      favicon. The React app's `ui/index.html` currently hardcodes
-      `<link rel="icon" ... href="/favicon.svg" />` instead, so per-deploy favicon
-      configuration is lost for `/app/`.
+      favicon. The React app's `ui/index.html` was hardcoding
+      `<link rel="icon" ... href="/favicon.svg" />` (a leftover Vite-scaffold
+      asset) instead, so per-deploy favicon configuration was lost for `/app/`.
+      Since `ui/index.html` is a static build output with no PHP templating,
+      reading `$CONFIG["FAV_ICON"]` at request time isn't practical without a
+      build-time step - hardcoded it instead, pointing at the same
+      `/favicon-32x32.png` (plus 16x16 and apple-touch-icon) the legacy page and
+      reset-password templates already use. In production `/app/` and the site
+      root share the same Apache `DocumentRoot`, so the absolute paths resolve
+      without extra plumbing there; added dev-only Vite proxy entries
+      (`/app/favicon-32x32.png` etc. → the PHP dev server) so they resolve
+      locally too. Removed the now-unused `ui/public/favicon.svg`.
 - [ ] **Replace `docs/shoppingListScreenshot.PNG` with a screenshot of the new UI.**
       Currently shows the legacy jQuery UI (referenced from `README.md`); should be
       updated once the React UI's styling/appearance is representative of the
