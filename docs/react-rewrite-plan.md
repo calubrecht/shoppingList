@@ -163,6 +163,16 @@ that login/auth works through the proxy before writing any real UI components.
       droppable so that can resolve. Needs `WeekDay` to register the day container as
       a droppable (or render an empty-state placeholder inside the `SortableContext`)
       so empty days become valid drop targets.
+- [ ] **Restore `FAV_ICON` in the new UI.** The legacy app and PHP-rendered pages
+      (`service/templates/resetPassword.php`, `expiredToken.php`) use the
+      `$CONFIG["FAV_ICON"]` setting from `config.php` so a deploy can brand its own
+      favicon. The React app's `ui/index.html` currently hardcodes
+      `<link rel="icon" ... href="/favicon.svg" />` instead, so per-deploy favicon
+      configuration is lost for `/app/`.
+- [ ] **Replace `docs/shoppingListScreenshot.PNG` with a screenshot of the new UI.**
+      Currently shows the legacy jQuery UI (referenced from `README.md`); should be
+      updated once the React UI's styling/appearance is representative of the
+      intended cutover look.
 - [ ] **BUG: duplicate "Default" row per user in `listNames`.** Confirmed live in the
       dev DB — every user, including the pre-existing `ca_lazerdwarf` account (not
       just ones created during this rewrite), has exactly two `("Default", userId)`
