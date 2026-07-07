@@ -206,10 +206,14 @@ that login/auth works through the proxy before writing any real UI components.
       without extra plumbing there; added dev-only Vite proxy entries
       (`/app/favicon-32x32.png` etc. → the PHP dev server) so they resolve
       locally too. Removed the now-unused `ui/public/favicon.svg`.
-- [ ] **Replace `docs/shoppingListScreenshot.PNG` with a screenshot of the new UI.**
-      Currently shows the legacy jQuery UI (referenced from `README.md`); should be
-      updated once the React UI's styling/appearance is representative of the
-      intended cutover look.
+- [x] **Replace `docs/shoppingListScreenshot.PNG` with a screenshot of the new UI.**
+      Replaced with a screenshot of the React Build List tab (`ui/`, `/app/`) for a
+      brand-new registration, showing the seeded starter list (Lunchmeat, Swiss
+      Cheese, Liverwurst, Tomatoes, Bran Flakes, Milk, Frozen Pizza) across its
+      five aisles. Captured headlessly via the `run-shopping-list` skill's
+      Playwright driver against the dev servers, registering a fresh throwaway
+      account rather than the shared `devagent` one so the seeded-list behavior
+      (see the earlier starter-list TODO) was actually exercised.
 - [ ] **Password reset flow needs a React-side redo, and appears currently broken.**
       The recovery email (`service/templates/recoveryEmail.php`) links to
       `<HOST>/resetPassword/<token>` — a path segment — but
