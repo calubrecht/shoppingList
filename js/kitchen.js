@@ -23,7 +23,7 @@ var listsReady = false;
 var selectMenuInitted = false;
 var tabTS = {shop: "", menu:""};
 var selectingFromRecipes = false;
-var VERSION="2.0.3";
+var VERSION="3.1.0";
 var pollStatus = 1;
 
 var pollTimer = null;
@@ -1202,7 +1202,7 @@ function doPoll()
      skips--;
      return;
    }
-   postTo("tick", {"action":"tick"}, handlePoll);
+   post({"action":"tick"}, handlePoll);
 }
 
 function handlePoll(data)

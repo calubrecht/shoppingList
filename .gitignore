@@ -1,3 +1,6 @@
 service/config.php
 *.sw*
 __pycache__
+*.tar.gz
+.claude/skills/run-shopping-list/node_modules
+.claude/skills/run-shopping-list/package-lock.json

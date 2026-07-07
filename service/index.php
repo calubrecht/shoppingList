@@ -44,7 +44,8 @@ function checkToken()
   {
     return false;
   }
-  $headerToken = apache_request_headers()['X-Xsrf-Token'];
+  $headers = array_change_key_case(apache_request_headers(), CASE_UPPER);
+  $headerToken = $headers['X-XSRF-TOKEN'] ?? false;
   if ($expectedToken != $headerToken)
   {
     return false;
@@ -125,6 +126,22 @@ else if ($request['action'] == "resetPassword")
   requestReset($request);
   setResult($result, "msg", "If this account exists, an email has been sent with instructions on how to reset your password.");
 }
+else if ($request['action'] == "checkResetToken")
+{
+  $username = getUsernameFromToken($request['token']);
+  if (!$username)
+  {
+    setResult($result, "valid", false);
+    setResult($result, "error", "This password token cannot be found or has expired, please request a new password reset token.");
+  }
+  else
+  {
+    $_SESSION["token"] = $request['token'];
+    setResult($result, "valid", true);
+    setResult($result, "userName", $username);
+  }
+  setResult($result, "isLoggedIn", isLoggedIn());
+}
 else if ($request['action'] == "doResetPassword")
 {
   $token = $request['token'];
@@ -168,10 +185,12 @@ else if ($request['action'] == "getWorkingList")
 {
   $msg = '';
   $ts = null;
+  $aisleOrder = null;
   $listName = $request["listName"];
-  $workingList = getWorkingList(getUser(), "saved", $listName, $msg, $ts);
+  $workingList = getWorkingList(getUser(), "saved", $listName, $msg, $ts, $aisleOrder);
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "workingList", $workingList);
+  setResult($result, "aisleOrder", $aisleOrder);
   setTS($result, "work", $ts);
   if ($msg)
   {
@@ -182,10 +201,12 @@ else if ($request['action'] == "getShopList")
 {
   $msg = '';
   $ts = null;
+  $aisleOrder = null;
   $listName = $request["listName"];
-  $workingList = getWorkingList(getUser(), "shop", $listName, $msg, $ts);
+  $workingList = getWorkingList(getUser(), "shop", $listName, $msg, $ts, $aisleOrder);
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "workingList", $workingList);
+  setResult($result, "aisleOrder", $aisleOrder);
   setTS($result, "shop", $ts);
   if ($msg)
   {
@@ -208,13 +229,14 @@ else if ($request['action'] == "getMenu")
 else if ($request['action'] == "saveList")
 {
   $ts = null;
-  $res = setWorkingList(getUser(), "saved", $request["listName"], $request['list'], $ts);
+  $aisleOrder = $request['aisleOrder'] ?? null;
+  $res = setWorkingList(getUser(), "saved", $request["listName"], $request['list'], $ts, $aisleOrder);
   if ($res)
   {
     setResult($result, "error", $res);
   }
   $ts = $request["shopTs"];
-  $res = setWorkingList(getUser(), "shop", $request["listName"], $request['list'], $ts);
+  $res = setWorkingList(getUser(), "shop", $request["listName"], $request['list'], $ts, $aisleOrder);
   setResult($result, "isLoggedIn", isLoggedIn());
   setTS($result, "shop", $ts);
 }
@@ -222,35 +244,40 @@ else if ($request['action'] == "setShopList")
 {
   $ts = $request["ts"];
   $listName = $request["listName"];
-  $res = setWorkingList(getUser(), "shop", $listName, $request['list'], $ts);
+  $aisleOrder = $request['aisleOrder'] ?? null;
+  $res = setWorkingList(getUser(), "shop", $listName, $request['list'], $ts, $aisleOrder);
   if ($res)
   {
     setResult($result, "error", $res);
   }
   $msg = null;
   $ts = null;
-  $workingList = getWorkingList(getUser(), "shop", $listName, $msg, $ts);
+  $aisleOrder = null;
+  $workingList = getWorkingList(getUser(), "shop", $listName, $msg, $ts, $aisleOrder);
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "workingList", $workingList);
+  setResult($result, "aisleOrder", $aisleOrder);
   setTS($result, "shop", $ts);
 }
 else if ($request['action'] == "revertWorkingList")
 {
   $msg = '';
   $ts = null;
+  $aisleOrder = null;
   $listName = $request["listName"];
-  $workingList = getWorkingList(getUser(), "saved", $listName, $msg, $ts);
+  $workingList = getWorkingList(getUser(), "saved", $listName, $msg, $ts, $aisleOrder);
   $workingListArrays = array_map(
     function($item) {return array($item["id"], $item["name"], $item["aisle"], $item["count"], $item["active"], $item["done"]  );},
     $workingList);
   $ts = $request["ts"];
-  $res = setWorkingList(getUser(), "shop", $listName, $workingListArrays, $ts);
+  $res = setWorkingList(getUser(), "shop", $listName, $workingListArrays, $ts, $aisleOrder);
   if ($res)
   {
     setResult($result, "error", $res);
   }
   setResult($result, "isLoggedIn", isLoggedIn());
   setResult($result, "workingList", $workingList);
+  setResult($result, "aisleOrder", $aisleOrder);
   setTS($result, "work", $ts);
   if ($msg)
   {
@@ -273,6 +300,42 @@ else if ($request['action'] == "deleteItem")
 {
   $ts = null;
   $res = deleteItem(getUser(), "shop", $request["listName"], $request["itemId"], $ts);
+  if ($res)
+  {
+    setResult($result, "error", $res);
+  }
+  setResult($result, "isLoggedIn", isLoggedIn());
+  setResult($result, "keepTab", true);
+  setTS($result, "shop", $ts);
+}
+else if ($request['action'] == "addAisle")
+{
+  $ts = null;
+  $res = addAisle(getUser(), $request["listName"], $request["aisleName"], $ts);
+  if ($res)
+  {
+    setResult($result, "error", $res);
+  }
+  setResult($result, "isLoggedIn", isLoggedIn());
+  setResult($result, "keepTab", true);
+  setTS($result, "shop", $ts);
+}
+else if ($request['action'] == "renameAisle")
+{
+  $ts = null;
+  $res = renameAisle(getUser(), $request["listName"], $request["oldName"], $request["newName"], $ts);
+  if ($res)
+  {
+    setResult($result, "error", $res);
+  }
+  setResult($result, "isLoggedIn", isLoggedIn());
+  setResult($result, "keepTab", true);
+  setTS($result, "shop", $ts);
+}
+else if ($request['action'] == "removeAisle")
+{
+  $ts = null;
+  $res = removeAisle(getUser(), $request["listName"], $request["aisleName"], $ts);
   if ($res)
   {
     setResult($result, "error", $res);

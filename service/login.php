@@ -81,6 +81,7 @@ function login($req)
           error_log("No internal user for " . $res . " creating now");
           _createInternalUser($res, $res);
           _createInternalLists($res);
+          seedStarterList($res);
         }
       }
       return true;
@@ -134,8 +135,9 @@ function register($req)
     if (!$res) {
       if ($plugin->getPluginName() != "NativeAuthentication") {
         _createInternalUser($user, $displayName);
+        _createInternalLists($user);
       }
-      _createInternalLists($user);
+      seedStarterList($user);
       error_log("registered ". $user . " logging in");
       login($req);
     }
