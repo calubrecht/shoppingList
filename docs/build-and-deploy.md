@@ -57,10 +57,11 @@ Because `config.php` isn't part of the tarball, an existing deploy's config is u
 
 An Apache vhost example is in `apacheConfig/kitchen.conf`. Notable points:
 
-- `DocumentRoot` is `~/www/kitchen`, with `shopping.html` as the legacy entry point.
+- `DocumentRoot` is `~/www/kitchen`, with `DirectoryIndex app/index.html shopping.html` — the React app is the default entry point at `<yoursite>`, with the legacy jQuery UI still reachable directly at `<yoursite>/shopping.html`.
 - `/app/` (the built React app) gets `Cache-Control: no-cache` on the shell, while `/app/assets/` (Vite's content-hashed bundles) gets long-lived immutable caching.
-- Under `/service/`, only `index.php` and `resetPassword.php` are directly reachable; everything else in `service/` is denied via `<Files *.php>`/`<FilesMatch>` and reached only through those two entry points.
-- The two UIs live side by side and are reached at different paths: navigating to `<yoursite>` (i.e. `shopping.html` via `DirectoryIndex`) shows the legacy UI, while navigating to `<yoursite>/app/index.html` shows the new React UI. There's no redirect between them yet — both are live at once, which is what lets the React rewrite be deployed and tested without cutting over the legacy site.
+- Under `/service/`, only `index.php` is directly reachable; everything else in `service/` is denied via `<Files *.php>`/`<FilesMatch>` and reached only through that entry point.
+- A `RewriteRule` maps the password-reset email's link (`<yoursite>/resetPassword/<token>`) into the React app as `/app/index.html?token=<token>` — the reset flow itself lives entirely in `ui/`, there's no PHP-rendered reset page anymore.
+- Both UIs are live at once, which is what lets the React rewrite be tested without fully cutting over the legacy site — but the legacy UI is expected to be short-lived at this point.
 
 CI/CD (a Jenkins job that calls `bin/package` and deploys the result) exists but its configuration is intentionally kept out of this repository.
 

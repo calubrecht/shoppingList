@@ -1,8 +1,24 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
+// Mirrors the production Apache RewriteRule (apacheConfig/kitchen.conf) that
+// serves the app for the password-reset email's link; the token itself stays
+// in the URL path and is read there client-side (App.jsx), since this is an
+// internal rewrite with no client-visible redirect.
+function resetPasswordLinkRewrite() {
+  return {
+    name: 'reset-password-link-rewrite',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        if (/^\/resetPassword\//.test(req.url)) req.url = '/app/'
+        next()
+      })
+    },
+  }
+}
+
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), resetPasswordLinkRewrite()],
   base: '/app/',
   server: {
     proxy: {

@@ -214,7 +214,7 @@ that login/auth works through the proxy before writing any real UI components.
       Playwright driver against the dev servers, registering a fresh throwaway
       account rather than the shared `devagent` one so the seeded-list behavior
       (see the earlier starter-list TODO) was actually exercised.
-- [ ] **Password reset flow needs a React-side redo, and appears currently broken.**
+- [x] **Password reset flow needs a React-side redo, and appears currently broken.**
       The recovery email (`service/templates/recoveryEmail.php`) links to
       `<HOST>/resetPassword/<token>` — a path segment — but
       `service/resetPassword.php` reads the token from `$_GET["token"]`
@@ -227,6 +227,29 @@ that login/auth works through the proxy before writing any real UI components.
       at all. Needs: fixing the token URL (query param, or an actual rewrite rule),
       and either restyling these pages to match the new UI or moving the reset flow
       into `ui/` itself (with the emailed link pointing at `/app/...`).
+      Fixed by moving the whole flow into `ui/`, keeping the emailed link's URL
+      shape unchanged (`<HOST>/resetPassword/<token>`). Added a
+      `RewriteRule ^resetPassword/.+$ /app/index.html [L]` to
+      `apacheConfig/kitchen.conf` (mirrored in `ui/vite.config.js` via a small
+      dev-only middleware) — since it's an internal rewrite rather than a
+      redirect, the browser's URL and `window.location` keep the original
+      `/resetPassword/<token>` path, so the token is read straight out of
+      `location.pathname` in `App.jsx` rather than a query string. Added a
+      `checkResetToken` action to `service/index.php` that reuses
+      `getUsernameFromToken()` (`service/login.php`) and sets
+      `$_SESSION["token"]` exactly as the old GET page did, so the pre-existing
+      `doResetPassword` action's session check kept working unchanged. New
+      `ResetPasswordTab.jsx` (modeled on `ForgotPasswordTab.jsx`) calls
+      `checkResetToken` on mount and renders the expired/invalid message or the
+      new-password form accordingly; `App.jsx` routes to it as a hidden tab
+      (same pattern as the existing forgot-password tab) whenever a token is
+      present and the user isn't logged in. Deleted the now-dead
+      `service/resetPassword.php`, `service/templates/resetPassword.php`, and
+      `service/templates/expiredToken.php`. Verified end-to-end against the dev
+      servers: triggered `resetPassword` for the `devagent` account, pulled the
+      token from the dev DB directly, confirmed an invalid token renders the
+      expired-token error, and a valid token renders the form, resets the
+      password, and the account can log in with the new password afterward.
 - [x] **BUG: duplicate "Default" row per user in `listNames`.** Confirmed live in the
       dev DB — every user, including the pre-existing `ca_lazerdwarf` account (not
       just ones created during this rewrite), had exactly two `("Default", userId)`

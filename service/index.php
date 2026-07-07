@@ -126,6 +126,22 @@ else if ($request['action'] == "resetPassword")
   requestReset($request);
   setResult($result, "msg", "If this account exists, an email has been sent with instructions on how to reset your password.");
 }
+else if ($request['action'] == "checkResetToken")
+{
+  $username = getUsernameFromToken($request['token']);
+  if (!$username)
+  {
+    setResult($result, "valid", false);
+    setResult($result, "error", "This password token cannot be found or has expired, please request a new password reset token.");
+  }
+  else
+  {
+    $_SESSION["token"] = $request['token'];
+    setResult($result, "valid", true);
+    setResult($result, "userName", $username);
+  }
+  setResult($result, "isLoggedIn", isLoggedIn());
+}
 else if ($request['action'] == "doResetPassword")
 {
   $token = $request['token'];

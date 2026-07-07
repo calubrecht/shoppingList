@@ -6,6 +6,7 @@ import TabBar from './components/TabBar'
 import LoginTab from './components/LoginTab'
 import RegisterTab from './components/RegisterTab'
 import ForgotPasswordTab from './components/ForgotPasswordTab'
+import ResetPasswordTab from './components/ResetPasswordTab'
 import BuildListTab from './components/BuildListTab'
 import ShopTab from './components/ShopTab'
 import MenuTab from './components/MenuTab'
@@ -31,6 +32,15 @@ export default function App() {
   } = useStore()
 
   const initialTabRef = useRef(window.location.hash.slice(1))
+  // The server rewrites /resetPassword/<token> internally (no client-visible
+  // redirect), so the token arrives in the URL path, not a query string.
+  const resetTokenRef = useRef(window.location.pathname.match(/\/resetPassword\/(.+)$/)?.[1])
+
+  useEffect(() => {
+    if (resetTokenRef.current) {
+      history.replaceState(null, '', '/' + window.location.hash)
+    }
+  }, [])
 
   useEffect(() => {
     post({ action: 'checkLogin' }).then(data => handleCheckLogin(data, true)).catch(() => {})
@@ -94,6 +104,7 @@ export default function App() {
       if (useStore.getState().pendingMutations.length > 0) flushQueue()
     } else {
       setNotLoggedIn()
+      if (resetTokenRef.current) setActiveTab('resetPassword')
     }
     if (data.msg) setMsg(data.msg)
     if (data.error) setError(data.error)
@@ -157,6 +168,7 @@ export default function App() {
   const tabContent = {
     login: <LoginTab onLogin={handleLogin} onForgotPassword={() => setActiveTab('password')} />,
     password: <ForgotPasswordTab onSubmit={handleForgotPassword} />,
+    resetPassword: <ResetPasswordTab token={resetTokenRef.current} onDone={() => setActiveTab('login')} />,
     register: <RegisterTab onRegister={handleRegister} />,
     buildList: (
       <BuildListTab
