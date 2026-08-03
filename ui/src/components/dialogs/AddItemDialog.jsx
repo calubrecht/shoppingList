@@ -4,7 +4,7 @@ import { post } from '../../api'
 
 export default function AddItemDialog({ onClose }) {
   const { shopList, currentList, addItemToAisle } = useStore()
-  const { aisleOrder } = shopList
+  const { aisleOrder, aisles } = shopList
   const [lastAisle, setLastAisle] = useState(aisleOrder[0] ?? '')
   const itemNameRef = useRef()
   const aisleRef = useRef()
@@ -16,9 +16,14 @@ export default function AddItemDialog({ onClose }) {
 
     const id = `id_${name.replace(/[^a-zA-Z0-9]/g, '').substring(0, 20)}_${Date.now()}`
     const item = { id, name, count: 1, enabled: true, done: false, aisle }
+    let order = 0
+    for (const aisleName of aisleOrder) {
+      order += aisles[aisleName]?.items.length ?? 0
+      if (aisleName === aisle) break
+    }
     addItemToAisle(aisle, item)
     setLastAisle(aisle)
-    post({ action: 'addItem', listName: currentList, itemId: id, itemName: name, aisleName: aisle, order: 0 })
+    post({ action: 'addItem', listName: currentList, itemId: id, itemName: name, aisleName: aisle, order })
       .then(data => { if (data?.ts?.ts) useStore.getState().setShopTs(data.ts.ts) })
 
     if (close) {
