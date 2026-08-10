@@ -20,6 +20,11 @@ export default function Item({ item, currentList }) {
 
   function handleCountChange(e) {
     const val = e.target.value
+    if (val === '') {
+      // Temporary blank value is allowed but
+      // do not post to server
+      return; 
+    }
     if (/^\d+$/.test(val) && parseInt(val, 10) >= 0) {
       setItemCount(item.id, parseInt(val, 10))
       post({ action: 'saveCount', listName: currentList, id: item.id, count: val }).then(syncTs)
